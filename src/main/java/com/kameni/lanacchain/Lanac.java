@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 public class Lanac {
 
-    public static ArrayList<Block> blockchain = new ArrayList<>();
+    public ArrayList<Block> blockchain = new ArrayList<>();
 
-    public static void createBlocks() {
+    public void createBlocks() {
         // Adding the data to the ArrayList
         blockchain.add(new Block(
                 "First block", "0"));
@@ -35,7 +35,7 @@ public class Lanac {
                         .hash));
     }
 
-    public static Boolean isChainValid() {
+    public Boolean isChainValid() {
         Block currentBlock;
         Block previousBlock;
 

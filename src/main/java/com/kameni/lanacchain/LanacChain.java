@@ -1,25 +1,25 @@
 package com.kameni.lanacchain;
 
 
-public class Main {
+public class LanacChain {
     static void main() {
-        IO.println(String.format("LanacChain!"));
+        IO.println("LanacChain!");
 
-        Lanac.createBlocks();
-
+        Lanac lanac = new Lanac();
+        lanac.createBlocks();
         //invalid Block addition
-        Lanac.blockchain.add(new Block("Invalid test", "rara"));
+        lanac.blockchain.add(new Block("Invalid test", "rara"));
 
-        if (Lanac.isChainValid()){
+        if (lanac.isChainValid()){
 
             //display blocks
             StringBuilder blockDisplay;
-            for (int i = 0; i < Lanac.blockchain.size(); i++) {
+            for (int i = 0; i < lanac.blockchain.size(); i++) {
                 blockDisplay = new StringBuilder();
                 blockDisplay.append("Hash -> ");
-                blockDisplay.append(Lanac.blockchain.get(i).hash);
+                blockDisplay.append(lanac.blockchain.get(i).hash);
                 blockDisplay.append(" previous hash [");
-                blockDisplay.append(Lanac.blockchain.get(i).previousHash);
+                blockDisplay.append(lanac.blockchain.get(i).previousHash);
                 blockDisplay.append("]");
 
                 IO.println(blockDisplay.toString());
