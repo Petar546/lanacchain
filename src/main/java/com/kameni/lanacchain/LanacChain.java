@@ -8,12 +8,10 @@ public class LanacChain {
         IO.println("LanacChain!");
         Wallet wallet = new Wallet("data");
 
-
-
         Lanac lanac = new Lanac();
         lanac.createBlocks();
         //invalid Block addition
-        lanac.blockchain.add(new Block("Invalid test", "rara"));
+//        lanac.blockchain.add(new Block("Invalid test", "rara"));
 
         if (lanac.isChainValid()){
 

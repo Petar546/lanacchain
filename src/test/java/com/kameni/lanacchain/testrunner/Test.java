@@ -5,21 +5,44 @@ import com.kameni.lanacchain.KeyConverterTest;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Test {
-    public class ResultCount {
-        Integer passed;
-        Integer failed;
+    public class TestResult {
+        private Set<String> passed;
+        private Set<String> failed;
 
-        ResultCount(int passed, int failed) {
+        TestResult(Set<String> passed, Set<String> failed) {
             this.passed = passed;
             this.failed = failed;
         }
-
-        void add(ResultCount otherResultCount){
-            this.passed = this.passed + otherResultCount.passed;
-            this.failed = this.failed + otherResultCount.failed;
+        TestResult() {
+            this.passed = new HashSet<>();
+            this.failed = new HashSet<>();
         }
+
+        void add(TestResult otherTestResult){
+            this.passed.addAll(otherTestResult.passed);
+            this.failed.addAll(otherTestResult.failed);
+        }
+
+        public Set<String> getFailed() {
+            return failed;
+        }
+
+        public Set<String> getPassed() {
+            return passed;
+        }
+
+        public void addPassed(String passedTestName) {
+            passed.add(passedTestName);
+        }
+
+        public void addFailed(String failedTestName) {
+            failed.add(failedTestName);
+        }
+
     }
 
     void main(String[] args) {
@@ -29,26 +52,40 @@ public class Test {
                 new KeyConverterTest()
         };
 
-        ResultCount overallResult = new ResultCount(0,0);
+        TestResult overallResult = new TestResult();
         for (Object testInstance : testInstances){
             IO.println("--- Test Class: " + testInstance.getClass().getSimpleName() + " ---");
 
-            ResultCount currentTestResultCount = runMethodsOfInstance(testInstance);
-            overallResult.add(currentTestResultCount);
+            TestResult currentTestTestResult = runMethodsOfInstance(testInstance);
+            overallResult.add(currentTestTestResult);
         }
 
-        System.out.println("\n---------------------------------");
 
-        System.out.printf("Results: %d Passed, %d Failed%n", overallResult.passed, overallResult.failed);
+        printResult(overallResult);
 
         // Exit with error code if any test failed (useful for CI/CD)
-        if (overallResult.failed > 0) System.exit(1);
+        if (!overallResult.getFailed().isEmpty()) System.exit(1);
     }
 
-    public ResultCount runMethodsOfInstance(Object testInstance) {
+    private static void printResult(TestResult overallResult) {
+        IO.println("\n---------------------------------");
+        IO.print("Results: ");
+        //if any test has failed red, else make passed green :D
+        if (!overallResult.getFailed().isEmpty()){
+            IO.print(overallResult.getPassed().size() + " Passed");
+            IO.print(", ");
+            TestPrint.printColoredln(overallResult.getFailed().size() + " Failed", Color.RED);
+        }else{
+            TestPrint.printColored(overallResult.getPassed().size() + " Passed", Color.GREEN);
+            IO.print(", ");
+            IO.println(overallResult.getFailed().size() + " Failed");
+        }
+    }
+
+    public TestResult runMethodsOfInstance(Object testInstance) {
         String testClassName = testInstance.getClass().getSimpleName();
         Method[] methods = testInstance.getClass().getDeclaredMethods();
-        ResultCount resultCount = new ResultCount(0, 0);
+        TestResult testResult = new TestResult();
         for (Method m : methods) {
             String currentMethodName = testClassName + "."  + m.getName();
             if (m.getName().startsWith("test") && !Modifier.isStatic(m.getModifiers())) {
@@ -59,18 +96,18 @@ public class Test {
 
                     m.invoke(testInstance); // dynamic call
                     TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
-                    resultCount.passed++;
+                    testResult.addPassed(currentMethodName);
                 } catch (Exception e) {
                     TestPrint.printColored(currentMethodName + " FAILED", Color.RED);
 
                     // unwrapping exception to see actual error
                     Throwable cause = (e.getCause() != null) ? e.getCause() : e;
                     cause.printStackTrace();
-                    resultCount.failed++;
+                    testResult.addFailed(currentMethodName);
                 }
             }
         }
 
-        return resultCount;
+        return testResult;
     }
 }
