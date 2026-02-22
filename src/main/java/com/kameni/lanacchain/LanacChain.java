@@ -1,9 +1,14 @@
 package com.kameni.lanacchain;
 
 
+import com.kameni.KeyConverter;
+
 public class LanacChain {
     static void main() {
         IO.println("LanacChain!");
+        Wallet wallet = new Wallet("data");
+
+
 
         Lanac lanac = new Lanac();
         lanac.createBlocks();
