@@ -2,6 +2,7 @@ package com.kameni.lanacchain.testrunner;
 
 
 import com.kameni.lanacchain.KeyConverterTest;
+import com.kameni.lanacchain.PeerIdentityTest;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -49,7 +50,8 @@ public class Test {
         IO.println("------------ Starting Tests ------------");
 
         Object[] testInstances = {
-                new KeyConverterTest()
+                new KeyConverterTest(),
+                new PeerIdentityTest()
         };
 
         TestResult overallResult = new TestResult();

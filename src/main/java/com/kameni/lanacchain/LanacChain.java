@@ -1,33 +1,34 @@
 package com.kameni.lanacchain;
 
 
-public class LanacChain {
-    static void main() {
-        IO.println("LanacChain!");
-        Wallet wallet = new Wallet("data");
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
+public class LanacChain {
+    static void main() throws Exception {
+        IO.println("LanacChain!");
         Lanac lanac = new Lanac();
-        lanac.createBlocks();
         //invalid Block addition
 //        lanac.blockchain.add(new Block("Invalid test", "rara"));
 
-        if (lanac.isChainValid()){
+        if (lanac.isChainValid()) {
 
             //display blocks
-            StringBuilder blockDisplay;
             for (int i = 0; i < lanac.blockchain.size(); i++) {
-                blockDisplay = new StringBuilder();
-                blockDisplay.append("Hash -> ");
-                blockDisplay.append(lanac.blockchain.get(i).hash);
-                blockDisplay.append(" previous hash [");
-                blockDisplay.append(lanac.blockchain.get(i).previousHash);
-                blockDisplay.append("]");
+                String blockDisplay = String.format("Block[%d] Hash: %s | Prev: %s",
+                        i,
+                        lanac.blockchain.get(i).hash,
+                        lanac.blockchain.get(i).previousHash);
 
-                IO.println(blockDisplay.toString());
+                IO.println(blockDisplay);
             }
         }else{
             IO.println("Chain aint valid");
         }
-
     }
+
+
 }

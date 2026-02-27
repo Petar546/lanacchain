@@ -11,8 +11,8 @@ import java.security.spec.InvalidKeySpecException;
 public class KeyConverterTest {
 
     public void test__toPublicKey() throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
-        Wallet wallet = new Wallet("test");
-        PublicKey key = wallet.publicKey;
+        PeerIdentity peerIdentity = new PeerIdentity();
+        PublicKey key = peerIdentity.getPublicKey();
         String key_string = WKeyHandler.toString(key);
         PublicKey reconverted_key = WKeyHandler.toPublicKey(key_string);
 
