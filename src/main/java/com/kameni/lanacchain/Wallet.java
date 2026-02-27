@@ -1,5 +1,6 @@
 package com.kameni.lanacchain;
 
+import com.kameni.WKeyHandler;
 import com.kameni.lanacchain.exceptions.KeyPairGenerationException;
 
 import java.io.StringWriter;
@@ -18,23 +19,12 @@ public class Wallet {
     public Wallet(String data){
         try {
 
-            KeyPair keyPair = createKeyPairs();
+            KeyPair keyPair = WKeyHandler.createKeyPairs();
             extractKeysFromKeyPair(keyPair);
         }catch (KeyPairGenerationException e){
             IO.println(e.getMessage());
         }
 
-    }
-
-    private KeyPair createKeyPairs() throws KeyPairGenerationException {
-        try {
-            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-            keyGen.initialize(2048);
-            return keyGen.generateKeyPair();
-
-        } catch (NoSuchAlgorithmException e) {
-            throw new KeyPairGenerationException(e.getMessage(), e.getCause());
-        }
     }
 
     private void extractKeysFromKeyPair(KeyPair pair) {

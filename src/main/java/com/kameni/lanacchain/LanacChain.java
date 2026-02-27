@@ -1,8 +1,6 @@
 package com.kameni.lanacchain;
 
 
-import com.kameni.KeyConverter;
-
 public class LanacChain {
     static void main() {
         IO.println("LanacChain!");
