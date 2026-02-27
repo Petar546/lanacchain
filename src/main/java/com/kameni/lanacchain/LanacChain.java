@@ -8,7 +8,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class LanacChain {
-    static void main() throws Exception {
+    static void main() {
         IO.println("LanacChain!");
         Lanac lanac = new Lanac();
         //invalid Block addition

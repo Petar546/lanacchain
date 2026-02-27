@@ -5,7 +5,7 @@ import java.security.Signature;
 import java.util.List;
 
 public class PeerNode {
-    // Verifies that Peer B's move is authentic
+    // Verifies that Peers move is authentic
     public boolean verifyIncomingAction(SignedAction action, PublicKey peerPublicKey) {
         try {
             Signature sig = Signature.getInstance("SHA256withECDSA");
@@ -17,10 +17,10 @@ public class PeerNode {
         }
     }
 
-    // Interface for the Blockchain: Packages verified actions into a Block
+    // Interface for the Blockchain
     public void commitToLocalChain(List<SignedAction> verifiedActions) {
-        // 1. Sort actions by playerAddress to ensure determinism
-        // 2. Create a hash of all actions
-        // 3. Append to your local blockchain copy
+        // Sort actions by playerAddress to ensure determinism
+        // Create a hash of all actions
+        // Append to your local blockchain copy
     }
 }

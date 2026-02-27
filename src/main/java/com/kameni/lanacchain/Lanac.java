@@ -5,13 +5,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
 
 public class Lanac {
 
     public ArrayList<Block> blockchain = new ArrayList<>();
 
     public Lanac() {
-        blockchain.add(new Block("Genesis", "0"));
+        LanacData genesis = new LanacData(0, new Date().getTime());
+        blockchain.add(new Block(genesis, "0"));
     }
 
     public void addBlock(LanacData data, byte[] signature, String sender) {
@@ -31,7 +33,7 @@ public class Lanac {
 
             // 2. Cryptographic Verification
             try {
-                if (!verifyAction(current.data, current.signature, current.senderAddress)) {
+                if (!verifyAction(current., current.signature, current.senderAddress)) {
                     IO.println("Block " + i + " has a fraudulent signature!");
                     return false;
                 }
