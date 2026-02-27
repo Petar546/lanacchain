@@ -3,12 +3,10 @@ package com.kameni.lanacchain;
 import com.kameni.WKeyHandler;
 import com.kameni.lanacchain.exceptions.KeyPairGenerationException;
 
-import java.io.StringWriter;
-import java.security.*;
-import java.security.interfaces.ECPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
 
 public class Wallet {
 
