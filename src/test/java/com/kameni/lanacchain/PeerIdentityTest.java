@@ -18,25 +18,11 @@ public class PeerIdentityTest {
         IO.println("Action signed. Signature length: " + signature.length);
 
         // verify
-        boolean isAuthentic = verifyAction(action1, signature, peer1.getPeerAddress());
+        boolean isAuthentic = Lanac.verifyAction(action1, signature, peer1.getPeerAddress());
         IO.println("Verified: " + isAuthentic);
 
         assert isAuthentic;
 
     }
 
-    /**
-     * simulate peer verifying another peers LanacData
-     */
-    public static boolean verifyAction(LanacData data, byte[] signature, String address) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        byte[] publicBytes = Base64.getDecoder().decode(address);
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        PublicKey pubKey = keyFactory.generatePublic(keySpec);
-
-        Signature sig = Signature.getInstance("SHA256withRSA");
-        sig.initVerify(pubKey);
-        sig.update(data.toBytes());
-        return sig.verify(signature);
-    }
 }

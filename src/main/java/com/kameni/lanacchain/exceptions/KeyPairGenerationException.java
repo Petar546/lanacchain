@@ -6,4 +6,8 @@ public class KeyPairGenerationException extends Exception {
     public KeyPairGenerationException(String message, Throwable cause) {
         super("KeyPairGenerationException: " + message, cause);
     }
+
+    public KeyPairGenerationException(Exception e) {
+        super("KeyPairGenerationException: " + e.getMessage(), e.getCause());
+    }
 }

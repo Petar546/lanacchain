@@ -2,6 +2,7 @@ package com.kameni.lanacchain;
 
 import com.kameni.WKeyHandler;
 import com.kameni.lanacchain.exceptions.KeyPairGenerationException;
+import com.kameni.lanacchain.exceptions.LanacSignatureException;
 
 import java.security.*;
 import java.util.Base64;
@@ -26,11 +27,16 @@ public class PeerIdentity {
         return Base64.getEncoder().encodeToString(publicKey.getEncoded());
     }
 
-    public byte[] signData(LanacData data) throws Exception {
-        Signature dsa = Signature.getInstance("SHA256withRSA");
-        dsa.initSign(privateKey);
-        dsa.update(data.toBytes());
-        return dsa.sign();
+    public byte[] signData(LanacData data) throws LanacSignatureException {
+        try {
+            Signature dsa = Signature.getInstance("SHA256withRSA");
+            dsa.initSign(privateKey);
+            dsa.update(data.toBytes());
+            return dsa.sign();
+
+        }catch (InvalidKeyException | SignatureException| NoSuchAlgorithmException e) {
+            throw new LanacSignatureException(e);
+        }
     }
 
     private void extractKeysFromKeyPair(KeyPair pair) {

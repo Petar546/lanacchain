@@ -1,5 +1,6 @@
 package com.kameni.lanacchain;
 
+import javax.crypto.NullCipher;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -13,13 +14,16 @@ public class Lanac {
 
     public Lanac() {
         LanacData genesis = new LanacData(0, new Date().getTime());
-        blockchain.add(new Block(genesis, "0"));
+        byte[] signature = new byte[0];
+        String senderAdress = "0";
+        String previoushash = "0";
+        blockchain.add(new Block(genesis, signature, senderAdress, previoushash));
     }
 
-    public void addBlock(LanacData data, byte[] signature, String sender) {
-        String prevHash = blockchain.get(blockchain.size() - 1).hash;
+    public void addBlock(LanacData data, byte[] signature, String senderAddress) {
+        String prevHash = blockchain.getLast().getHash();
         // We pass the data and signature into the block
-        blockchain.add(new Block(data, prevHash));
+        blockchain.add(new Block(data, signature, senderAddress, prevHash));
     }
 
     public boolean isChainValid() {
@@ -28,12 +32,12 @@ public class Lanac {
             Block previous = blockchain.get(i - 1);
 
             // 1. Check if hashes match
-            if (!current.hash.equals(current.calculateHash())) return false;
-            if (!current.previousHash.equals(previous.hash)) return false;
+            if (!current.getHash().equals(current.calculateHash())) return false;
+            if (!current.getPreviousHash().equals(previous.getHash())) return false;
 
             // 2. Cryptographic Verification
             try {
-                if (!verifyAction(current., current.signature, current.senderAddress)) {
+                if (!verifyAction(current.getData(), current.getSignature(), current.getSenderAddress())) {
                     IO.println("Block " + i + " has a fraudulent signature!");
                     return false;
                 }
