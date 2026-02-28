@@ -7,28 +7,26 @@ import java.util.Base64;
 public class Block {
     private final String hash;
     private final String previousHash;
-    private final LanacData data;
-    private final byte[] signature;
-    private final String senderAddress;
+    private final SignedAction signedAction;
     private final long timeStamp;
 
     // regular block constructor
-    public Block(LanacData data, byte[] signature, String senderAddress, String previousHash){
-        this.data = data;
-        this.signature = signature;
-        this.senderAddress = senderAddress;
+    public Block(SignedAction signedAction, String previousHash){
+        this.signedAction = signedAction;
         this.previousHash = previousHash;
         this.timeStamp = System.currentTimeMillis();
         this.hash = calculateHash();
     }
 
+
+
     public String calculateHash(){
         // combine
         String input = previousHash +
             Long.toString(timeStamp) +
-            (data != null ? Base64.getEncoder().encodeToString(data.toBytes()) : "") +
-            (signature != null ? Base64.getEncoder().encodeToString(signature) : "") +
-            (senderAddress != null ? senderAddress : "");
+            (signedAction.getInputData() != null ? Base64.getEncoder().encodeToString(signedAction.getInputData().toBytes()) : "") +
+            (signedAction.getSignature() != null ? Base64.getEncoder().encodeToString(signedAction.getSignature()) : "") +
+            (signedAction.getPeerAddress() != null ? signedAction.getPeerAddress() : "");
 
         //calculating hash using previous hash, timestamp, data, signature, and sender adress
         return Crypt.sha256( input);
@@ -42,17 +40,10 @@ public class Block {
         return previousHash;
     }
 
-    public LanacData getData() {
-        return data;
+    public SignedAction getSignedAction() {
+        return signedAction;
     }
 
-    public byte[] getSignature() {
-        return signature;
-    }
-
-    public String getSenderAddress() {
-        return senderAddress;
-    }
 
     public long getTimeStamp() {
         return timeStamp;

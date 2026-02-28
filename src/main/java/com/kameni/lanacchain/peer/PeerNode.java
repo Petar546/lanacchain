@@ -1,19 +1,15 @@
 package com.kameni.lanacchain.peer;
 
+import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.SignedAction;
 
-import java.security.PublicKey;
-import java.security.Signature;
 import java.util.List;
 
 public class PeerNode {
     // Verifies that Peers move is authentic
-    public boolean verifyIncomingAction(SignedAction action, PublicKey peerPublicKey) {
+    public boolean verifyIncomingAction(SignedAction action) {
         try {
-            Signature sig = Signature.getInstance("SHA256withECDSA");
-            sig.initVerify(peerPublicKey);
-            sig.update(action.inputData.toBytes());
-            return sig.verify(action.signature);
+            return  Lanac.verifyAction(action);
         } catch (Exception e) {
             return false;
         }

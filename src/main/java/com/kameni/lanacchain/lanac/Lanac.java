@@ -1,5 +1,8 @@
 package com.kameni.lanacchain.lanac;
 
+import com.kameni.lanacchain.exceptions.LanacSignatureException;
+import com.kameni.lanacchain.peer.PeerIdentity;
+
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -12,17 +15,24 @@ public class Lanac {
     public ArrayList<Block> blockchain = new ArrayList<>();
 
     public Lanac() {
-        LanacData genesis = new LanacData(0, new Date().getTime());
-        byte[] signature = new byte[0];
-        String senderAdress = "0";
+        LanacData data = new LanacData(0, new Date().getTime());
+        PeerIdentity genesisPeer = new PeerIdentity();
         String previoushash = "0";
-        blockchain.add(new Block(genesis, signature, senderAdress, previoushash));
+
+        SignedAction genesisAction;
+        try {
+            genesisAction = new SignedAction(data, genesisPeer);
+
+        }catch (LanacSignatureException e){
+            throw new RuntimeException(e);
+        }
+        blockchain.add(new Block(genesisAction, previoushash));
     }
 
-    public void addBlock(LanacData data, byte[] signature, String senderAddress) {
+    public void addBlock(SignedAction signedAction) {
         String prevHash = blockchain.getLast().getHash();
         // We pass the data and signature into the block
-        blockchain.add(new Block(data, signature, senderAddress, prevHash));
+        blockchain.add(new Block(signedAction, prevHash));
     }
 
     public boolean isChainValid() {
@@ -36,7 +46,7 @@ public class Lanac {
 
             // 2. Cryptographic Verification
             try {
-                if (!verifyAction(current.getData(), current.getSignature(), current.getSenderAddress())) {
+                if (!verifyAction(current.getSignedAction())) {
                     IO.println("Block " + i + " has a fraudulent signature!");
                     return false;
                 }
@@ -47,15 +57,15 @@ public class Lanac {
         return true;
     }
 
-    public static boolean verifyAction(LanacData data, byte[] signature, String address) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        byte[] publicBytes = Base64.getDecoder().decode(address);
+    public static boolean verifyAction(SignedAction signedAction) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        byte[] publicBytes = Base64.getDecoder().decode(signedAction.getPeerAddress());
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicBytes);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PublicKey pubKey = keyFactory.generatePublic(keySpec);
 
         Signature sig = Signature.getInstance("SHA256withRSA");
         sig.initVerify(pubKey);
-        sig.update(data.toBytes());
-        return sig.verify(signature);
+        sig.update(signedAction.getInputData().toBytes());
+        return sig.verify(signedAction.getSignature());
     }
 }

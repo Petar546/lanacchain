@@ -4,6 +4,7 @@ package com.kameni.lanacchain;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.LanacData;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
+import com.kameni.lanacchain.lanac.SignedAction;
 import com.kameni.lanacchain.peer.PeerIdentity;
 
 public class LanacChain {
@@ -17,19 +18,19 @@ public class LanacChain {
         IO.println("Peer Address: " + peer1.getPeerAddress());
 
         // create data
-        LanacData action1 = new LanacData(1, System.currentTimeMillis());
+        LanacData actionData1 = new LanacData(1, System.currentTimeMillis());
 
-        byte[] signature1;
+        SignedAction action1;
         try {
             // sign action
-            signature1 = peer1.signData(action1);
-            IO.println("Action signed. Signature length: " + signature1.length);
+            action1 = new SignedAction(actionData1, peer1);
+            IO.println("Action signed by peer: " + peer1.getPeerAddress());
 
         }catch (LanacSignatureException e){
             throw new RuntimeException(e);
         }
 
-        lanac.addBlock(action1, signature1, peer1.getPeerAddress());
+        lanac.addBlock(action1);
 
         if (lanac.isChainValid()) {
 
