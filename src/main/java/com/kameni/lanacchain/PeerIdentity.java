@@ -1,7 +1,7 @@
 package com.kameni.lanacchain;
 
 import com.kameni.WKeyHandler;
-import com.kameni.lanacchain.exceptions.KeyPairGenerationException;
+import com.kameni.lanacchain.exceptions.LanacKeyPairGenerationException;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
 
 import java.security.*;
@@ -17,7 +17,7 @@ public class PeerIdentity {
 
             KeyPair keyPair = WKeyHandler.createKeyPairs();
             extractKeysFromKeyPair(keyPair);
-        } catch (KeyPairGenerationException e) {
+        } catch (LanacKeyPairGenerationException e) {
             IO.println(e.getMessage());
         }
     }

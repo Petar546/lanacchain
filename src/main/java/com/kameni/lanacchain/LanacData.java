@@ -14,8 +14,8 @@ public class LanacData {
     // converts object to byte array for signing
     public byte[] toBytes() {
         return ByteBuffer.allocate(12) // int 4 + long 8 bytes
-                .putInt(data)
-                .putLong(timestamp)
-                .array();
+            .putInt(data)
+            .putLong(timestamp)
+            .array();
     }
 }

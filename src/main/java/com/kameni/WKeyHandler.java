@@ -1,6 +1,6 @@
 package com.kameni;
 
-import com.kameni.lanacchain.exceptions.KeyPairGenerationException;
+import com.kameni.lanacchain.exceptions.LanacKeyPairGenerationException;
 
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -10,14 +10,14 @@ import java.util.Base64;
 public class WKeyHandler {
 
 
-    public static KeyPair createKeyPairs() throws KeyPairGenerationException {
+    public static KeyPair createKeyPairs() throws LanacKeyPairGenerationException {
         try {
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
             keyGen.initialize(2048);
             return keyGen.generateKeyPair();
 
         } catch (NoSuchAlgorithmException e) {
-            throw new KeyPairGenerationException(e.getMessage(), e.getCause());
+            throw new LanacKeyPairGenerationException(e.getMessage(), e.getCause());
         }
     }
 

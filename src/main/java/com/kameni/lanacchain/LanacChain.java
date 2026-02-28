@@ -49,6 +49,8 @@ public class LanacChain {
         }else{
             IO.println("Chain aint valid");
         }
+
+        peer1.
     }
 
 
