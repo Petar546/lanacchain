@@ -1,4 +1,4 @@
-package com.kameni;
+package com.kameni.lanacchain.lanac.crypt;
 
 import com.kameni.lanacchain.exceptions.LanacKeyPairGenerationException;
 

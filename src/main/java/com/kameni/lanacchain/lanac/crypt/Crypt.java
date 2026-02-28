@@ -1,6 +1,5 @@
-package com.kameni.lanacchain;
+package com.kameni.lanacchain.lanac.crypt;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

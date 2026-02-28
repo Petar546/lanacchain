@@ -1,7 +1,8 @@
 package com.kameni.lanacchain;
 
 
-import com.kameni.WKeyHandler;
+import com.kameni.lanacchain.lanac.crypt.WKeyHandler;
+import com.kameni.lanacchain.peer.PeerIdentity;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;

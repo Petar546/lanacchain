@@ -1,4 +1,6 @@
-package com.kameni.lanacchain;
+package com.kameni.lanacchain.lanac;
+
+import com.kameni.lanacchain.peer.PeerIdentity;
 
 public class SignedAction {
     public String peerAddress;

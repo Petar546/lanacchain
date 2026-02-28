@@ -1,4 +1,6 @@
-package com.kameni.lanacchain;
+package com.kameni.lanacchain.peer;
+
+import com.kameni.lanacchain.lanac.SignedAction;
 
 import java.security.PublicKey;
 import java.security.Signature;

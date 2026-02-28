@@ -1,6 +1,5 @@
-package com.kameni.lanacchain;
+package com.kameni.lanacchain.lanac;
 
-import javax.crypto.NullCipher;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;

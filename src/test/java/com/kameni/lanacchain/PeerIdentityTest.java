@@ -1,9 +1,8 @@
 package com.kameni.lanacchain;
 
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
+import com.kameni.lanacchain.lanac.Lanac;
+import com.kameni.lanacchain.lanac.LanacData;
+import com.kameni.lanacchain.peer.PeerIdentity;
 
 public class PeerIdentityTest {
     public void test__peerIdentityTest() throws Exception{

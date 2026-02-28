@@ -1,6 +1,7 @@
-package com.kameni.lanacchain;
+package com.kameni.lanacchain.peer;
 
-import com.kameni.WKeyHandler;
+import com.kameni.lanacchain.lanac.crypt.WKeyHandler;
+import com.kameni.lanacchain.lanac.LanacData;
 import com.kameni.lanacchain.exceptions.LanacKeyPairGenerationException;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
 

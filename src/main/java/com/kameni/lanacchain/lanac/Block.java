@@ -1,11 +1,8 @@
-package com.kameni.lanacchain;
+package com.kameni.lanacchain.lanac;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import com.kameni.lanacchain.lanac.crypt.Crypt;
+
 import java.util.Base64;
-import java.util.Date;
 
 public class Block {
     private final String hash;
