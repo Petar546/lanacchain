@@ -1,6 +1,7 @@
 package com.kameni.lanacchain.lanac;
 
 import com.kameni.lanacchain.lanac.crypt.Crypt;
+import com.kameni.lanacchain.lanac.data.SignedAction;
 
 import java.util.Base64;
 

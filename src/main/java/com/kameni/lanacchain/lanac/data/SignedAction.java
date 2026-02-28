@@ -1,4 +1,4 @@
-package com.kameni.lanacchain.lanac;
+package com.kameni.lanacchain.lanac.data;
 
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.peer.PeerIdentity;

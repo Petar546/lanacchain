@@ -1,7 +1,7 @@
 package com.kameni.lanacchain;
 
 import com.kameni.lanacchain.lanac.Lanac;
-import com.kameni.lanacchain.lanac.LanacData;
+import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.peer.PeerIdentity;
 
 public class PeerIdentityTest {

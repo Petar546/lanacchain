@@ -1,6 +1,8 @@
 package com.kameni.lanacchain.lanac;
 
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
+import com.kameni.lanacchain.lanac.data.LanacData;
+import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.peer.PeerIdentity;
 
 import java.security.*;

@@ -1,4 +1,4 @@
-package com.kameni.lanacchain.lanac;
+package com.kameni.lanacchain.lanac.data;
 
 import java.nio.ByteBuffer;
 

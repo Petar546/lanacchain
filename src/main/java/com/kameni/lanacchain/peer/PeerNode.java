@@ -1,7 +1,7 @@
 package com.kameni.lanacchain.peer;
 
 import com.kameni.lanacchain.lanac.Lanac;
-import com.kameni.lanacchain.lanac.SignedAction;
+import com.kameni.lanacchain.lanac.data.SignedAction;
 
 import java.util.List;
 
