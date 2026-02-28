@@ -32,6 +32,30 @@ public class LanacChain {
 
         lanac.addBlock(action1);
 
+        //add bad block
+        lanac.addBadBlock(action1);
+
+        //add fraudulent block (doesnt work)
+        PeerIdentity peer2 = new PeerIdentity();
+
+        IO.println("Peer Address: " + peer2.getPeerAddress());
+
+        // create data
+        LanacData actionData2 = new LanacData(1, System.currentTimeMillis());
+
+        SignedAction action2;
+        try {
+            // sign action
+            action2 = new SignedAction(actionData2, peer2);
+            IO.println("Action signed by peer: " + peer2.getPeerAddress());
+
+        }catch (LanacSignatureException e){
+            throw new RuntimeException(e);
+        }
+
+        //add fraudulent block
+        lanac.addBlock(action2);
+
         if (lanac.isChainValid()) {
 
             //display blocks

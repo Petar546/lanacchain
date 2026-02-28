@@ -33,8 +33,11 @@ public class Lanac {
 
     public void addBlock(SignedAction signedAction) {
         String prevHash = blockchain.getLast().getHash();
-        // We pass the data and signature into the block
         blockchain.add(new Block(signedAction, prevHash));
+    }
+
+    public void addBadBlock(SignedAction signedAction) {
+        blockchain.add(new Block(signedAction, "0"));
     }
 
     public boolean isChainValid() {
