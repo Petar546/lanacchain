@@ -46,7 +46,6 @@ public class LanacChain {
             IO.println("Chain aint valid");
         }
 
-        peer1.
     }
 
 

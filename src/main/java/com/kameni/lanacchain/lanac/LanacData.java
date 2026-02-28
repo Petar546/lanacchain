@@ -6,7 +6,7 @@ public class LanacData {
     public int data;
     public long timestamp;
 
-    LanacData(int data, long timestamp){
+    public LanacData(int data, long timestamp){
         this.data = data;
         this.timestamp = timestamp;
     }

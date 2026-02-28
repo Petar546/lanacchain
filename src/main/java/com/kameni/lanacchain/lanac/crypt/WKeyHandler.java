@@ -1,5 +1,6 @@
 package com.kameni.lanacchain.lanac.crypt;
 
+import com.kameni.lanacchain.exceptions.LanacKeyConversionException;
 import com.kameni.lanacchain.exceptions.LanacKeyPairGenerationException;
 
 import java.security.*;
@@ -30,25 +31,32 @@ public class WKeyHandler {
         return  Base64.getEncoder().encodeToString(keyByte);
     }
 
-    public static PublicKey toPublicKey(String keyString) throws InvalidKeySpecException, NoSuchAlgorithmException {
-
-        //converting string to Bytes
-        byte[] keyByte  = Base64.getDecoder().decode(keyString);
-        //converting it back to public key
-        KeyFactory factory = KeyFactory.getInstance("RSA");
-        PublicKey publicKey = factory.generatePublic(new X509EncodedKeySpec(keyByte));
-        System.out.println("FINAL OUTPUT" + publicKey);
-        return publicKey;
+    public static PublicKey toPublicKey(String keyString) throws LanacKeyConversionException {
+        try {
+            //converting string to Bytes
+            byte[] keyByte  = Base64.getDecoder().decode(keyString);
+            //converting it back to public key
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            PublicKey publicKey = factory.generatePublic(new X509EncodedKeySpec(keyByte));
+            System.out.println("FINAL OUTPUT" + publicKey);
+            return publicKey;
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new LanacKeyConversionException(e);
+        }
     }
 
-    public static PrivateKey toPrivateKey(String keyString) throws InvalidKeySpecException, NoSuchAlgorithmException {
+    public static PrivateKey toPrivateKey(String keyString) throws LanacKeyConversionException {
 
-        //converting string to Bytes
-        byte[] keyByte  = Base64.getDecoder().decode(keyString);
-        //converting back to private key
-        KeyFactory factory = KeyFactory.getInstance("RSA");
-        PrivateKey privateKey = factory.generatePrivate(new X509EncodedKeySpec(keyByte));
-        System.out.println("FINAL OUTPUT" + privateKey);
-        return privateKey;
+        try {
+            //converting string to Bytes
+            byte[] keyByte  = Base64.getDecoder().decode(keyString);
+            //converting back to private key
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            PrivateKey privateKey = factory.generatePrivate(new X509EncodedKeySpec(keyByte));
+            System.out.println("FINAL OUTPUT" + privateKey);
+            return privateKey;
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new LanacKeyConversionException(e);
+        }
     }
 }
