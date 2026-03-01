@@ -32,41 +32,42 @@ public class LanacChain {
 
         lanac.addBlock(action1);
 
-        //add bad block
-        lanac.addBadBlock(action1);
-
-        //add fraudulent block (doesnt work)
-        PeerIdentity peer2 = new PeerIdentity();
-
-        IO.println("Peer Address: " + peer2.getPeerAddress());
-
-        // create data
-        LanacData actionData2 = new LanacData(1, System.currentTimeMillis());
-
-        SignedAction action2;
-        try {
-            // sign action
-            action2 = new SignedAction(actionData2, peer2);
-            IO.println("Action signed by peer: " + peer2.getPeerAddress());
-
-        }catch (LanacSignatureException e){
-            throw new RuntimeException(e);
-        }
-
-        //add fraudulent block
-        lanac.addBlock(action2);
+//        //add bad block
+//        lanac.addBadBlock(action1);
+//
+//        //add fraudulent block (doesnt work)
+//        PeerIdentity peer2 = new PeerIdentity();
+//
+//        IO.println("Peer Address: " + peer2.getPeerAddress());
+//
+//        // create data
+//        LanacData actionData2 = new LanacData(1, System.currentTimeMillis());
+//
+//        SignedAction action2;
+//        try {
+//            // sign action
+//            action2 = new SignedAction(actionData2, peer2);
+//            IO.println("Action signed by peer: " + peer2.getPeerAddress());
+//
+//        }catch (LanacSignatureException e){
+//            throw new RuntimeException(e);
+//        }
+//
+//        //add fraudulent block
+//        lanac.addBlock(action2);
 
         if (lanac.isChainValid()) {
 
             //display blocks
-            for (int i = 0; i < lanac.blockchain.size(); i++) {
+            for (int i = 0; i < lanac.getBlockchain().size(); i++) {
                 String blockDisplay = String.format("Block[%d] Hash: %s | Prev: %s",
                         i,
-                        lanac.blockchain.get(i).getHash(),
-                        lanac.blockchain.get(i).getPreviousHash());
+                        lanac.getBlockchain().get(i).getHash(),
+                        lanac.getBlockchain().get(i).getPreviousHash());
 
                 IO.println(blockDisplay);
             }
+
         }else{
             IO.println("Chain aint valid");
         }

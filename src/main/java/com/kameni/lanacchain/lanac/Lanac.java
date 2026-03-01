@@ -11,10 +11,11 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.LinkedList;
 
 public class Lanac {
 
-    public ArrayList<Block> blockchain = new ArrayList<>();
+    private LinkedList<Block> blockchain = new LinkedList<>();
 
     public Lanac() {
         LanacData data = new LanacData(0, new Date().getTime());
@@ -72,5 +73,9 @@ public class Lanac {
         sig.initVerify(pubKey);
         sig.update(signedAction.getInputData().toBytes());
         return sig.verify(signedAction.getSignature());
+    }
+
+    public LinkedList<Block> getBlockchain() {
+        return blockchain;
     }
 }
