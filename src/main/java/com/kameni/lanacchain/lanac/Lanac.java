@@ -14,12 +14,13 @@ import java.util.LinkedList;
 
 public class Lanac {
 
-    private LinkedList<Block> blockchain = new LinkedList<>();
+    private final LinkedList<Block> blockchain = new LinkedList<>();
 
     public Lanac() {
+        //creating genesisBlock for Chain
         LanacData data = new LanacData(0, new Date().getTime());
         PeerIdentity genesisPeer = new PeerIdentity();
-        String previoushash = "0";
+        String previousHash = "0";
 
         SignedAction genesisAction;
         try {
@@ -28,7 +29,7 @@ public class Lanac {
         }catch (LanacSignatureException e){
             throw new RuntimeException(e);
         }
-        blockchain.add(new Block(genesisAction, previoushash));
+        blockchain.add(new Block(genesisAction, previousHash));
     }
 
     public void addBlock(SignedAction signedAction) {
@@ -77,7 +78,7 @@ public class Lanac {
     public Block getBlockAtIndex(int index) {
         return blockchain.get(index);
     }
-    
+
     public int getBlockchainSize() {
         return blockchain.size();
     }

@@ -8,12 +8,12 @@ public class SignedAction {
     private final LanacData inputData;
     private final byte[] signature;
 
-    public SignedAction(LanacData inputData, PeerIdentity id) throws LanacSignatureException {
-        this.peerAddress = id.getPeerAddress();
+    public SignedAction(LanacData inputData, PeerIdentity peer) throws LanacSignatureException {
+        this.peerAddress = peer.getPeerAddress();
         this.inputData = inputData;
 
         //signing
-        this.signature = id.signData(inputData);
+        this.signature = peer.signData(inputData);
     }
 
     public String getPeerAddress() {

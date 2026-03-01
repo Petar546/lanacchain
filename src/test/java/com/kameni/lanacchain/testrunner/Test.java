@@ -90,7 +90,7 @@ public class Test {
         TestResult testResult = new TestResult();
         for (Method m : methods) {
             String currentMethodName = testClassName + "."  + m.getName();
-            if (m.getName().startsWith("test") && !Modifier.isStatic(m.getModifiers())) {
+            if (m.getName().startsWith("test__") && !Modifier.isStatic(m.getModifiers())) {
                 try {
                     IO.print("------ Running ");
                     TestPrint.printColored(currentMethodName, Color.GREEN);

@@ -2,6 +2,7 @@ package com.kameni.lanacchain;
 
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.LanacData;
+import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.peer.PeerIdentity;
 
 public class PeerIdentityTest {
@@ -13,11 +14,10 @@ public class PeerIdentityTest {
         LanacData action1 = new LanacData(1, System.currentTimeMillis());
 
         // sign action
-        byte[] signature = peer1.signData(action1);
-        IO.println("Action signed. Signature length: " + signature.length);
+        SignedAction signedAction = new SignedAction(action1, peer1);
 
         // verify
-        boolean isAuthentic = Lanac.verifyAction(action1, signature, peer1.getPeerAddress());
+        boolean isAuthentic = Lanac.verifyAction(signedAction);
         IO.println("Verified: " + isAuthentic);
 
         assert isAuthentic;
