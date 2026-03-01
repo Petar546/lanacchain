@@ -8,7 +8,6 @@ import com.kameni.lanacchain.peer.PeerIdentity;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
@@ -75,7 +74,11 @@ public class Lanac {
         return sig.verify(signedAction.getSignature());
     }
 
-    public LinkedList<Block> getBlockchain() {
-        return blockchain;
+    public Block getBlockAtIndex(int index) {
+        return blockchain.get(index);
+    }
+    
+    public int getBlockchainSize() {
+        return blockchain.size();
     }
 }

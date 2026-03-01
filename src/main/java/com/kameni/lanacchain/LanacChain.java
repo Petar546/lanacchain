@@ -59,11 +59,12 @@ public class LanacChain {
         if (lanac.isChainValid()) {
 
             //display blocks
-            for (int i = 0; i < lanac.getBlockchain().size(); i++) {
+            for (int i = 0; i < lanac.getBlockchainSize(); i++) {
                 String blockDisplay = String.format("Block[%d] Hash: %s | Prev: %s",
                         i,
-                        lanac.getBlockchain().get(i).getHash(),
-                        lanac.getBlockchain().get(i).getPreviousHash());
+                        lanac.getBlockAtIndex(i).getHash(),
+                        lanac.getBlockAtIndex(i).getPreviousHash()
+                );
 
                 IO.println(blockDisplay);
             }
