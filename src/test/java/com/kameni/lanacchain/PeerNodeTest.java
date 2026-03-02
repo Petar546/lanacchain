@@ -1,30 +1,37 @@
 package com.kameni.lanacchain;
 
+import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.peer.PeerIdentity;
 import com.kameni.lanacchain.peer.PeerNode;
+import com.kameni.lanacchain.testrunner.LanacAssert;
+import com.kameni.lanacchain.testrunner.LanacTestUtils;
 
 // Use your own custom assertions for the reflection runner
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertEquals;
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Comparator;
 
+import static com.kameni.lanacchain.testrunner.LanacAssert.*;
+
 public class PeerNodeTest {
 
     private SignedAction actionA;
     private SignedAction actionB;
+    private PeerIdentity peerIdentity1;
+    private PeerIdentity peerIdentity2;
 
     void setUp() throws LanacSignatureException {
         // Included 0 as the tick for the blockchain height
         LanacData sampleData = new LanacData(100,0);
-        PeerIdentity peerIdentity1 = new PeerIdentity();
-        PeerIdentity peerIdentity2 = new PeerIdentity();
+
+        peerIdentity1 = new PeerIdentity();
+        peerIdentity2 = new PeerIdentity();
+
         actionA = new SignedAction(sampleData, peerIdentity1);
         actionB = new SignedAction(sampleData, peerIdentity2);
     }
@@ -88,5 +95,26 @@ public class PeerNodeTest {
         Thread.sleep(150);
 
         assertTrue(true, "Connection established successfully");
+    }
+
+    public void test__RejectionOfInvalidData() throws Exception {
+        setUp();
+
+        byte[] garbage = new byte[]{0, 1, 2, 3};
+
+        assertThrows(LanacDeserializationException.class, () -> {
+            SignedAction.deserialize(garbage);
+        }, "Node should throw an error when deserializing invalid byte arrays");
+    }
+
+    public void test__tamperedSignatureRejection() throws Exception {
+        setUp();
+        PeerNode node = new PeerNode(45003);
+        byte[] fakeSignature = new byte[]{ 0x13, 0x37, 0x00 };
+        SignedAction maliciousAction = LanacTestUtils.createTamperedAction(actionA.getInputData(), actionA.getPeerAddress(), fakeSignature);
+
+        boolean isValid = node.verifyIncomingAction(maliciousAction);
+
+        assertTrue(!isValid, "Security Breach: Node accepted an action with a faked signature!");
     }
 }

@@ -1,5 +1,6 @@
 package com.kameni.lanacchain.peer;
 
+import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacPeerConnectionException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
@@ -22,6 +23,7 @@ public class PeerNode {
     private long currentProcessingTick = 0;
 
     public PeerNode(int port) {
+        // TODO: write a finder for a PeerNode free Port, if chosen port is unavailabe
         this.port = port;
         new Thread(() -> {
             try {
@@ -31,7 +33,6 @@ public class PeerNode {
             }
         }).start();
     }
-
 
     public boolean verifyIncomingAction(SignedAction action) {
         try {
@@ -96,6 +97,10 @@ public class PeerNode {
             // remove peer if disconnects
             peerConnections.remove(socket);
             System.err.println("Peer disconnected. Remaining: " + peerConnections.size());
+        } catch (LanacDeserializationException e) {
+            // remove peer if disconnects
+            System.err.println("Error during deserialization of data for Action");
+            throw new RuntimeException("Error during deserialization of data for Action" , e);
         }
     }
 
