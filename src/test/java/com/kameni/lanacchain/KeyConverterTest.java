@@ -5,6 +5,8 @@ import com.kameni.lanacchain.exceptions.LanacKeyConversionException;
 import com.kameni.lanacchain.lanac.crypt.WKeyHandler;
 import com.kameni.lanacchain.peer.PeerIdentity;
 import java.security.PublicKey;
+
+import static com.kameni.lanacchain.testrunner.LanacAssert.assertThrows;
 import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
 
 public class KeyConverterTest {
@@ -19,7 +21,14 @@ public class KeyConverterTest {
         IO.println(reconverted_key.toString());
 
 
-        assertTrue(1 == 0, "1 is not 0");
         assertTrue(key.equals(reconverted_key), "Keys arent Matching");
     }
+
+
+    public void test__toPublicKeyError() {
+        // string which cant be converted to Public Key
+        String key_string = "rara u nana";
+        assertThrows(LanacKeyConversionException.class, () -> WKeyHandler.toPublicKey(key_string), "Throws LanacKeyConversionException");
+    }
+
 }

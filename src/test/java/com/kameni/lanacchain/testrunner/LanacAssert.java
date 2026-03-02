@@ -15,4 +15,19 @@ public class LanacAssert {
         throw new RuntimeException("Assertion Failed: " + message
                 + " [Expected: " + expected + ", Actual: " + actual + "]");
     }
+
+    public static void assertThrows(Class<? extends Throwable> expectedException, ThrowingRunnable runnable, String message) {
+        try {
+            runnable.run();
+        } catch (Throwable caught) {
+            if (expectedException.isInstance(caught)) {
+                return; // correct exception thrown
+            }
+            throw new RuntimeException("Assertion Failed: " + message
+                + " [Expected: " + expectedException.getSimpleName()
+                + ", but caught: " + caught.getClass().getSimpleName() + "]");
+        }
+        throw new RuntimeException("Assertion Failed: " + message
+            + " [No exception was thrown, but expected: " + expectedException.getSimpleName() + "]");
+    }
 }

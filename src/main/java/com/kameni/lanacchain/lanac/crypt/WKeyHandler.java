@@ -40,7 +40,7 @@ public class WKeyHandler {
             PublicKey publicKey = factory.generatePublic(new X509EncodedKeySpec(keyByte));
             System.out.println("FINAL OUTPUT" + publicKey);
             return publicKey;
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
             throw new LanacKeyConversionException(e);
         }
     }
@@ -55,7 +55,7 @@ public class WKeyHandler {
             PrivateKey privateKey = factory.generatePrivate(new X509EncodedKeySpec(keyByte));
             System.out.println("FINAL OUTPUT" + privateKey);
             return privateKey;
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
             throw new LanacKeyConversionException(e);
         }
     }
