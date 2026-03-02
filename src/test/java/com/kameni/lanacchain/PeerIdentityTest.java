@@ -4,6 +4,7 @@ import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.peer.PeerIdentity;
+import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
 
 public class PeerIdentityTest {
     public void test__peerIdentityTest() throws Exception{
@@ -20,7 +21,7 @@ public class PeerIdentityTest {
         boolean isAuthentic = Lanac.verifyAction(signedAction);
         IO.println("Verified: " + isAuthentic);
 
-        assert isAuthentic;
+        assertTrue(isAuthentic, "action is not authentic");
 
     }
 

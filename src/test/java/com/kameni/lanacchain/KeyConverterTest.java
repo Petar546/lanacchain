@@ -4,11 +4,8 @@ package com.kameni.lanacchain;
 import com.kameni.lanacchain.exceptions.LanacKeyConversionException;
 import com.kameni.lanacchain.lanac.crypt.WKeyHandler;
 import com.kameni.lanacchain.peer.PeerIdentity;
-
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
+import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
 
 public class KeyConverterTest {
 
@@ -21,6 +18,8 @@ public class KeyConverterTest {
         IO.println(key.toString());
         IO.println(reconverted_key.toString());
 
-        assert key.equals(reconverted_key);
+
+        assertTrue(1 == 0, "1 is not 0");
+        assertTrue(key.equals(reconverted_key), "Keys arent Matching");
     }
 }

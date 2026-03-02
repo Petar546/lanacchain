@@ -3,6 +3,7 @@ package com.kameni.lanacchain.testrunner;
 
 import com.kameni.lanacchain.KeyConverterTest;
 import com.kameni.lanacchain.PeerIdentityTest;
+import com.kameni.lanacchain.PeerNodeTest;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -51,7 +52,8 @@ public class Test {
 
         Object[] testInstances = {
                 new KeyConverterTest(),
-                new PeerIdentityTest()
+                new PeerIdentityTest(),
+                new PeerNodeTest()
         };
 
         TestResult overallResult = new TestResult();
@@ -97,10 +99,10 @@ public class Test {
                     IO.println("... ------");
 
                     m.invoke(testInstance); // dynamic call
-                    TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
+                    TestPrint.printColoredln(currentMethodName + " PASSED", Color.GREEN);
                     testResult.addPassed(currentMethodName);
                 } catch (Exception e) {
-                    TestPrint.printColored(currentMethodName + " FAILED", Color.RED);
+                    TestPrint.printColoredln(currentMethodName + " FAILED", Color.RED);
 
                     // unwrapping exception to see actual error
                     Throwable cause = (e.getCause() != null) ? e.getCause() : e;
