@@ -1,10 +1,5 @@
 package com.kameni.lanacchain.testrunner;
 
-
-import com.kameni.lanacchain.testrun.KeyConverterTest;
-import com.kameni.lanacchain.testrun.PeerIdentityTest;
-import com.kameni.lanacchain.testrun.PeerNodeTest;
-
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -49,7 +44,7 @@ public class Test {
 
     }
 
-    void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    void main(String[] args) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
         IO.println("------------ Starting Tests ------------");
 
         String packageName = "com.kameni.lanacchain.testrun";
@@ -57,10 +52,11 @@ public class Test {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         URL resource = loader.getResource(path);
 
+        assert resource != null;
         File directory = new File(resource.getFile());
         List<Object> testInstances = new ArrayList<>();
 
-        for (File file : directory.listFiles()) {
+        for (File file : Objects.requireNonNull(directory.listFiles())) {
             if (file.getName().endsWith(".class")) {
                 IO.println(file.getName());
                 String className = packageName + "." + file.getName().replace(".class", "");
@@ -87,7 +83,13 @@ public class Test {
         printResult(overallResult);
 
         // Exit with error code if any test failed (useful for CI/CD)
-        if (!overallResult.getFailed().isEmpty()) System.exit(1);
+
+        if (!overallResult.getFailed().isEmpty()){
+            System.exit(1);
+        }
+        else {
+            System.exit(0);
+        };
     }
 
     private static void printResult(TestResult overallResult) {
