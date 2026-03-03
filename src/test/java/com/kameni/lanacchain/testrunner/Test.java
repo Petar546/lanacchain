@@ -82,8 +82,6 @@ public class Test {
 
         printResult(overallResult);
 
-        // Exit with error code if any test failed (useful for CI/CD)
-
         if (!overallResult.getFailed().isEmpty()){
             System.exit(1);
         }
