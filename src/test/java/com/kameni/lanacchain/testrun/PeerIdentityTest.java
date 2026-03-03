@@ -1,4 +1,4 @@
-package com.kameni.lanacchain;
+package com.kameni.lanacchain.testrun;
 
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.LanacData;

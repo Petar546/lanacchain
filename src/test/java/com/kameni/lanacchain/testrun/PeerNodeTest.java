@@ -1,4 +1,4 @@
-package com.kameni.lanacchain;
+package com.kameni.lanacchain.testrun;
 
 import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
@@ -6,7 +6,6 @@ import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.peer.PeerIdentity;
 import com.kameni.lanacchain.peer.PeerNode;
-import com.kameni.lanacchain.testrunner.LanacAssert;
 import com.kameni.lanacchain.testrunner.LanacTestUtils;
 
 // Use your own custom assertions for the reflection runner
