@@ -15,16 +15,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerNode {
 
-    private List<Socket> peerConnections = new ArrayList<>();
+    public List<Socket> peerConnections = new ArrayList<>();
+    private PeerConnectionListener listener;
     private int port;
 
     // Hash map of Signed actions happening and their in the buffer
     private final Map<Long, List<SignedAction>> tickBuffer = new ConcurrentHashMap<>();
     private long currentProcessingTick = 0;
 
-    public PeerNode(int port) {
+    public PeerNode(int port, PeerConnectionListener myListener) {
         // TODO: write a finder for a PeerNode free Port, if chosen port is unavailabe
         this.port = port;
+        this.listener = listener;
         new Thread(() -> {
             try {
                 listenForPeers();
@@ -61,6 +63,7 @@ public class PeerNode {
             while (true) {
                 Socket socket = serverSocket.accept();
                 peerConnections.add(socket);
+                if (listener != null) listener.onPeerJoined(socket);
                 new Thread(() -> handlePeer(socket)).start();
             }
         } catch (IOException e) {
@@ -73,6 +76,7 @@ public class PeerNode {
         try {
             Socket socket = new Socket(ip, peerPort);
             peerConnections.add(socket);
+            if (listener != null) listener.onConnectedToPeer(socket);
             new Thread(() -> handlePeer(socket)).start();
         } catch (IOException e) {
             throw new LanacPeerConnectionException(e);
@@ -96,6 +100,9 @@ public class PeerNode {
         } catch (IOException e) {
             // remove peer if disconnects
             peerConnections.remove(socket);
+            if (listener != null) {
+                listener.onPeerDisconnected(socket);
+            }
             System.err.println("Peer disconnected. Remaining: " + peerConnections.size());
         } catch (LanacDeserializationException e) {
             // remove peer if disconnects
