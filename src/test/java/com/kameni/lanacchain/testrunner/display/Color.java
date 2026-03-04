@@ -1,4 +1,4 @@
-package com.kameni.lanacchain.testrunner;
+package com.kameni.lanacchain.testrunner.display;
 
 public enum Color {
     RESET("\u001B[0m"),

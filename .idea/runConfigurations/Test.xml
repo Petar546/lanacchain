@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Test" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="com.kameni.lanacchain.testrunner.Test" />
+    <option name="MAIN_CLASS_NAME" value="com.kameni.lanacchain.testrunner.TestRunner" />
     <module name="lanacchain" />
     <method v="2">
       <option name="Make" enabled="true" />

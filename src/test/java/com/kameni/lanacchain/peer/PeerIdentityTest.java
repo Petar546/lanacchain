@@ -1,12 +1,18 @@
-package com.kameni.lanacchain.testrun;
+package com.kameni.lanacchain.peer;
 
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
-import com.kameni.lanacchain.peer.PeerIdentity;
+import com.kameni.lanacchain.testrunner.annotations.Test;
+import com.kameni.lanacchain.testrunner.annotations.TestClass;
+
 import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
 
+@TestClass
 public class PeerIdentityTest {
+
+    @Test
+
     public void test__peerIdentityTest() throws Exception{
         PeerIdentity peer1 = new PeerIdentity();
         IO.println("Peer Address: " + peer1.getPeerAddress());

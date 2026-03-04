@@ -1,14 +1,13 @@
 package com.kameni.lanacchain.testrunner;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.lang.reflect.InvocationTargetException;
+import com.kameni.lanacchain.testrunner.annotations.Test;
+import com.kameni.lanacchain.testrunner.display.Color;
+import com.kameni.lanacchain.testrunner.display.TestPrint;
+
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.URL;
 import java.util.*;
 
-public class Test {
+public class TestRunner {
     public class TestResult {
         private Set<String> passed;
         private Set<String> failed;
@@ -45,11 +44,11 @@ public class Test {
 
     }
 
-    void main(String[] args) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    void main(String[] args) {
         IO.println("------------ Starting Tests ------------");
 
-        String packageName = "com.kameni.lanacchain.testrun";
-        List<Object> testInstances = findFilesInPackageByName(packageName, "test");
+        String packageName = "com.kameni.lanacchain";
+        List<Object> testInstances = TestHelpers.findTests(packageName);
 
         TestResult overallResult = new TestResult();
         for (Object testInstance : testInstances){
@@ -70,39 +69,8 @@ public class Test {
         };
     }
 
-    private static List<Object> findFilesInPackageByName(String packageName, String containingString) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        String path = packageName.replace('.', '/');
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        URL resource = loader.getResource(path);
-
-        assert resource != null;
-        File directory = new File(resource.getFile());
-        FilenameFilter filenameFilter = new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return dir.getName().contains(containingString);
-            }
-        };
 
 
-        List<Object> testInstances = new ArrayList<>();
-
-        for (File file : Objects.requireNonNull(directory.listFiles(filenameFilter))) {
-            if (file.getName().endsWith(".class")) {
-                IO.println(file.getName());
-                String className = packageName + "." + file.getName().replace(".class", "");
-                Class<?> clazz = Class.forName(className);
-                try {
-                    testInstances.add(clazz.getConstructor().newInstance());
-
-                }catch (NoSuchMethodException e){
-                    IO.println("NoSuchMethodException: no contructor method for class " + file.getName());
-                }
-
-            }
-        }
-        return testInstances;
-    }
 
     private static void printResult(TestResult overallResult) {
         IO.println("\n---------------------------------");
@@ -125,7 +93,7 @@ public class Test {
         TestResult testResult = new TestResult();
         for (Method m : methods) {
             String currentMethodName = testClassName + "."  + m.getName();
-            if (m.getName().startsWith("test__") && !Modifier.isStatic(m.getModifiers())) {
+            if (m.isAnnotationPresent(Test.class)) {
                 try {
                     IO.print("------ Running ");
                     TestPrint.printColored(currentMethodName, Color.GREEN);

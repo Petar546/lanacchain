@@ -1,13 +1,12 @@
-package com.kameni.lanacchain.testrun;
+package com.kameni.lanacchain.peer;
 
 import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
-import com.kameni.lanacchain.peer.PeerConnectionListener;
-import com.kameni.lanacchain.peer.PeerIdentity;
-import com.kameni.lanacchain.peer.PeerNode;
 import com.kameni.lanacchain.testrunner.LanacTestUtils;
+import com.kameni.lanacchain.testrunner.annotations.Test;
+import com.kameni.lanacchain.testrunner.annotations.TestClass;
 
 // Use your own custom assertions for the reflection runner
 
@@ -19,6 +18,7 @@ import java.util.Comparator;
 
 import static com.kameni.lanacchain.testrunner.LanacAssert.*;
 
+@TestClass
 public class PeerNodeTest {
 
     private SignedAction actionA;
@@ -37,6 +37,7 @@ public class PeerNodeTest {
         actionB = new SignedAction(sampleData, peerIdentity2);
     }
 
+    @Test
     public void test__SerializationIntegrity() throws Exception {
         setUp();
         byte[] bytes = actionA.serialize();
@@ -51,6 +52,7 @@ public class PeerNodeTest {
         assertTrue(Arrays.equals(actionA.getSignature(), reconstructed.getSignature()), "Cryptographic signature mismatch");
     }
 
+    @Test
     public void test__DeterministicSorting() throws Exception {
         setUp();
         List<SignedAction> capturedActions = new ArrayList<>();
@@ -88,6 +90,7 @@ public class PeerNodeTest {
         assertTrue(first.compareTo(second) <= 0, "Blockchain determinism failed: Peer addresses are not sorted");
     }
 
+    @Test
     public void test__P2PConnection() throws Exception {
         setUp();
 
@@ -137,7 +140,7 @@ public class PeerNodeTest {
     }
 
 
-
+    @Test
     public void test__RejectionOfInvalidData() throws Exception {
         setUp();
 
@@ -148,6 +151,7 @@ public class PeerNodeTest {
         }, "Node should throw an error when deserializing invalid byte arrays");
     }
 
+    @Test
     public void test__tamperedSignatureRejection() throws Exception {
         setUp();
         PeerConnectionListener myListener = new PeerConnectionListener() {
