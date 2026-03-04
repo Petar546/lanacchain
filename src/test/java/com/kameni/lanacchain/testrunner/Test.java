@@ -48,28 +48,7 @@ public class Test {
         IO.println("------------ Starting Tests ------------");
 
         String packageName = "com.kameni.lanacchain.testrun";
-        String path = packageName.replace('.', '/');
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        URL resource = loader.getResource(path);
-
-        assert resource != null;
-        File directory = new File(resource.getFile());
-        List<Object> testInstances = new ArrayList<>();
-
-        for (File file : Objects.requireNonNull(directory.listFiles())) {
-            if (file.getName().endsWith(".class")) {
-                IO.println(file.getName());
-                String className = packageName + "." + file.getName().replace(".class", "");
-                Class<?> clazz = Class.forName(className);
-                try {
-                    testInstances.add(clazz.getConstructor().newInstance());
-
-                }catch (NoSuchMethodException e){
-                    IO.println("NoSuchMethodException: no contructor method for class " + file.getName());
-                }
-
-            }
-        }
+        List<Object> testInstances = findFilesInPackage(packageName, "Test");
 
         TestResult overallResult = new TestResult();
         for (Object testInstance : testInstances){
@@ -88,6 +67,32 @@ public class Test {
         else {
             System.exit(0);
         };
+    }
+
+    private static List<Object> findFilesInPackage(String packageName, String containingString) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        String path = packageName.replace('.', '/');
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        URL resource = loader.getResource(path);
+
+        assert resource != null;
+        File directory = new File(resource.getFile());
+        List<Object> testInstances = new ArrayList<>();
+
+        for (File file : Objects.requireNonNull(directory.listFiles())) {
+            if (file.getName().endsWith(".class") && file.getName().contains(containingString)) {
+                IO.println(file.getName());
+                String className = packageName + "." + file.getName().replace(".class", "");
+                Class<?> clazz = Class.forName(className);
+                try {
+                    testInstances.add(clazz.getConstructor().newInstance());
+
+                }catch (NoSuchMethodException e){
+                    IO.println("NoSuchMethodException: no contructor method for class " + file.getName());
+                }
+
+            }
+        }
+        return testInstances;
     }
 
     private static void printResult(TestResult overallResult) {
