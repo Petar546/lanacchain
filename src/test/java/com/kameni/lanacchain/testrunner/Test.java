@@ -1,14 +1,11 @@
 package com.kameni.lanacchain.testrunner;
 
-
-import com.kameni.lanacchain.KeyConverterTest;
-import com.kameni.lanacchain.PeerIdentityTest;
-import com.kameni.lanacchain.PeerNodeTest;
-
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Set;
+import java.net.URL;
+import java.util.*;
 
 public class Test {
     public class TestResult {
@@ -47,14 +44,32 @@ public class Test {
 
     }
 
-    void main(String[] args) {
+    void main(String[] args) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
         IO.println("------------ Starting Tests ------------");
 
-        Object[] testInstances = {
-                new KeyConverterTest(),
-                new PeerIdentityTest(),
-                new PeerNodeTest()
-        };
+        String packageName = "com.kameni.lanacchain.testrun";
+        String path = packageName.replace('.', '/');
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        URL resource = loader.getResource(path);
+
+        assert resource != null;
+        File directory = new File(resource.getFile());
+        List<Object> testInstances = new ArrayList<>();
+
+        for (File file : Objects.requireNonNull(directory.listFiles())) {
+            if (file.getName().endsWith(".class")) {
+                IO.println(file.getName());
+                String className = packageName + "." + file.getName().replace(".class", "");
+                Class<?> clazz = Class.forName(className);
+                try {
+                    testInstances.add(clazz.getConstructor().newInstance());
+
+                }catch (NoSuchMethodException e){
+                    IO.println("NoSuchMethodException: no contructor method for class " + file.getName());
+                }
+
+            }
+        }
 
         TestResult overallResult = new TestResult();
         for (Object testInstance : testInstances){
@@ -67,8 +82,12 @@ public class Test {
 
         printResult(overallResult);
 
-        // Exit with error code if any test failed (useful for CI/CD)
-        if (!overallResult.getFailed().isEmpty()) System.exit(1);
+        if (!overallResult.getFailed().isEmpty()){
+            System.exit(1);
+        }
+        else {
+            System.exit(0);
+        };
     }
 
     private static void printResult(TestResult overallResult) {
@@ -114,4 +133,5 @@ public class Test {
 
         return testResult;
     }
+
 }

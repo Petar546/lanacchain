@@ -1,16 +1,17 @@
-package com.kameni.lanacchain;
+package com.kameni.lanacchain.testrun;
 
 import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
+import com.kameni.lanacchain.peer.PeerConnectionListener;
 import com.kameni.lanacchain.peer.PeerIdentity;
 import com.kameni.lanacchain.peer.PeerNode;
-import com.kameni.lanacchain.testrunner.LanacAssert;
 import com.kameni.lanacchain.testrunner.LanacTestUtils;
 
 // Use your own custom assertions for the reflection runner
 
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,9 +54,20 @@ public class PeerNodeTest {
     public void test__DeterministicSorting() throws Exception {
         setUp();
         List<SignedAction> capturedActions = new ArrayList<>();
+        PeerConnectionListener myListener = new PeerConnectionListener() {
+            @Override
+            public void onPeerJoined(Socket s) { System.out.println("P1 New Inbound: " + s.getPort()); }
 
+            @Override
+            public void onConnectedToPeer(Socket s) { System.out.println("P1 New Outbound: " + s.getPort()); }
+
+            @Override
+            public void onPeerDisconnected(Socket s) {
+                System.out.println("P1 Peer Left: " + s.getRemoteSocketAddress());
+            }
+        };
         // Anonymous subclass to intercept the internal blockchain commit
-        PeerNode node = new PeerNode(9999) {
+        PeerNode node = new PeerNode(9999, myListener) {
             @Override
             public void commitToLocalChain(List<SignedAction> verifiedActions) {
                 List<SignedAction> sorted = verifiedActions.stream()
@@ -78,9 +90,35 @@ public class PeerNodeTest {
 
     public void test__P2PConnection() throws Exception {
         setUp();
+
+        PeerConnectionListener myListener1 = new PeerConnectionListener() {
+            @Override
+            public void onPeerJoined(Socket s) { System.out.println("P1 New Inbound: " + s.getPort()); }
+
+            @Override
+            public void onConnectedToPeer(Socket s) { System.out.println("P1 New Outbound: " + s.getPort()); }
+
+            @Override
+            public void onPeerDisconnected(Socket s) {
+                System.out.println("P1 Peer Left: " + s.getRemoteSocketAddress());
+            }
+        };
+
+        PeerConnectionListener myListener2 = new PeerConnectionListener() {
+            @Override
+            public void onPeerJoined(Socket s) { System.out.println("P2 New Inbound: " + s.getPort()); }
+
+            @Override
+            public void onConnectedToPeer(Socket s) { System.out.println("P2 New Outbound: " + s.getPort()); }
+
+            @Override
+            public void onPeerDisconnected(Socket s) {
+                System.out.println("P2 Peer Left: " + s.getRemoteSocketAddress());
+            }
+        };
         // Use unique ports for the test environment
-        PeerNode node1 = new PeerNode(45001);
-        PeerNode node2 = new PeerNode(45002);
+        PeerNode node1 = new PeerNode(45001, myListener1);
+        PeerNode node2 = new PeerNode(45002, myListener2);
 
         // Allow ServerSockets time to bind to the ports
         Thread.sleep(150);
@@ -94,8 +132,11 @@ public class PeerNodeTest {
         // Wait for the background 'handlePeer' thread to initialize the socket
         Thread.sleep(150);
 
-        assertTrue(true, "Connection established successfully");
+        IO.println(node1.peerConnections.toString());
+        assertTrue(!node1.peerConnections.isEmpty(), "Connections fonud on node 1");
     }
+
+
 
     public void test__RejectionOfInvalidData() throws Exception {
         setUp();
@@ -109,7 +150,19 @@ public class PeerNodeTest {
 
     public void test__tamperedSignatureRejection() throws Exception {
         setUp();
-        PeerNode node = new PeerNode(45003);
+        PeerConnectionListener myListener = new PeerConnectionListener() {
+            @Override
+            public void onPeerJoined(Socket s) { System.out.println("P1 New Inbound: " + s.getPort()); }
+
+            @Override
+            public void onConnectedToPeer(Socket s) { System.out.println("P1 New Outbound: " + s.getPort()); }
+
+            @Override
+            public void onPeerDisconnected(Socket s) {
+                System.out.println("P1 Peer Left: " + s.getRemoteSocketAddress());
+            }
+        };
+        PeerNode node = new PeerNode(45003, myListener);
         byte[] fakeSignature = new byte[]{ 0x13, 0x37, 0x00 };
         SignedAction maliciousAction = LanacTestUtils.createTamperedAction(actionA.getInputData(), actionA.getPeerAddress(), fakeSignature);
 
