@@ -1,6 +1,7 @@
 package com.kameni.lanacchain.testrunner;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -48,7 +49,7 @@ public class Test {
         IO.println("------------ Starting Tests ------------");
 
         String packageName = "com.kameni.lanacchain.testrun";
-        List<Object> testInstances = findFilesInPackage(packageName, "Test");
+        List<Object> testInstances = findFilesInPackageByName(packageName, "test");
 
         TestResult overallResult = new TestResult();
         for (Object testInstance : testInstances){
@@ -69,17 +70,25 @@ public class Test {
         };
     }
 
-    private static List<Object> findFilesInPackage(String packageName, String containingString) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    private static List<Object> findFilesInPackageByName(String packageName, String containingString) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException {
         String path = packageName.replace('.', '/');
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         URL resource = loader.getResource(path);
 
         assert resource != null;
         File directory = new File(resource.getFile());
+        FilenameFilter filenameFilter = new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return dir.getName().contains(containingString);
+            }
+        };
+
+
         List<Object> testInstances = new ArrayList<>();
 
-        for (File file : Objects.requireNonNull(directory.listFiles())) {
-            if (file.getName().endsWith(".class") && file.getName().contains(containingString)) {
+        for (File file : Objects.requireNonNull(directory.listFiles(filenameFilter))) {
+            if (file.getName().endsWith(".class")) {
                 IO.println(file.getName());
                 String className = packageName + "." + file.getName().replace(".class", "");
                 Class<?> clazz = Class.forName(className);
