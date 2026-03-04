@@ -23,7 +23,7 @@ public class PeerNode {
     private final Map<Long, List<SignedAction>> tickBuffer = new ConcurrentHashMap<>();
     private long currentProcessingTick = 0;
 
-    public PeerNode(int port, PeerConnectionListener myListener) {
+    public PeerNode(int port, PeerConnectionListener listener) {
         // TODO: write a finder for a PeerNode free Port, if chosen port is unavailabe
         this.port = port;
         this.listener = listener;

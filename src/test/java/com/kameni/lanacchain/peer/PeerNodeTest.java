@@ -96,10 +96,13 @@ public class PeerNodeTest {
 
         PeerConnectionListener myListener1 = new PeerConnectionListener() {
             @Override
-            public void onPeerJoined(Socket s) { System.out.println("P1 New Inbound: " + s.getPort()); }
+            public void onPeerJoined(Socket s) {
+                IO.println("P1 New Inbound: " + s.getPort());
+                throw new RuntimeException("P1 New Inbound: " + s.getPort());
+            }
 
             @Override
-            public void onConnectedToPeer(Socket s) { System.out.println("P1 New Outbound: " + s.getPort()); }
+            public void onConnectedToPeer(Socket s) { IO.println("P1 New Outbound: " + s.getPort()); }
 
             @Override
             public void onPeerDisconnected(Socket s) {
@@ -109,10 +112,10 @@ public class PeerNodeTest {
 
         PeerConnectionListener myListener2 = new PeerConnectionListener() {
             @Override
-            public void onPeerJoined(Socket s) { System.out.println("P2 New Inbound: " + s.getPort()); }
+            public void onPeerJoined(Socket s) { IO.println("P2 New Inbound: " + s.getPort()); }
 
             @Override
-            public void onConnectedToPeer(Socket s) { System.out.println("P2 New Outbound: " + s.getPort()); }
+            public void onConnectedToPeer(Socket s) { IO.println("P2 New Outbound: " + s.getPort()); }
 
             @Override
             public void onPeerDisconnected(Socket s) {
@@ -128,6 +131,7 @@ public class PeerNodeTest {
 
         try {
             node2.connectToPeer("127.0.0.1", 45001);
+            // listener.onConnectedToPeer will write "P2 New Outbound: 45001"
         } catch (Exception e) {
             throw new RuntimeException("P2P Handshake failed: " + e.getMessage());
         }
@@ -135,6 +139,9 @@ public class PeerNodeTest {
         // Wait for the background 'handlePeer' thread to initialize the socket
         Thread.sleep(150);
 
+        // listener.onPeerJoined will write "P1 New Inbound: <insert port here>"
+
+        //TODO: bind assert with the peer Listener and assert true when actions happen
         IO.println(node1.peerConnections.toString());
         assertTrue(!node1.peerConnections.isEmpty(), "Connections fonud on node 1");
     }
