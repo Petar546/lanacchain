@@ -28,7 +28,7 @@ public class PeerNodeTest {
 
     void setUp() throws LanacSignatureException {
         // Included 0 as the tick for the blockchain height
-        LanacData sampleData = new LanacData(100,0);
+        LanacData sampleData = new LanacData(100,0, 5);
 
         peerIdentity1 = new PeerIdentity();
         peerIdentity2 = new PeerIdentity();
@@ -46,8 +46,8 @@ public class PeerNodeTest {
         SignedAction reconstructed = SignedAction.deserialize(bytes);
 
         assertEquals(actionA.getPeerAddress(), reconstructed.getPeerAddress(), "Address mismatch");
-        assertEquals(actionA.getInputData().data, reconstructed.getInputData().data, "Data value mismatch");
-        assertEquals(actionA.getInputData().tick, reconstructed.getInputData().tick, "Tick ID mismatch");
+        assertEquals(actionA.getInputData().data(), reconstructed.getInputData().data(), "Data value mismatch");
+        assertEquals(actionA.getInputData().tick(), reconstructed.getInputData().tick(), "Tick ID mismatch");
 
         assertTrue(Arrays.equals(actionA.getSignature(), reconstructed.getSignature()), "Cryptographic signature mismatch");
     }

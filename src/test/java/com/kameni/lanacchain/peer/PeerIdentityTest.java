@@ -18,7 +18,7 @@ public class PeerIdentityTest {
         IO.println("Peer Address: " + peer1.getPeerAddress());
 
         // create data
-        LanacData action1 = new LanacData(1, System.currentTimeMillis());
+        LanacData action1 = new LanacData(1, System.currentTimeMillis(), 4);
 
         // sign action
         SignedAction signedAction = new SignedAction(action1, peer1);

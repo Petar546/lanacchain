@@ -18,7 +18,7 @@ public class Lanac {
 
     public Lanac() {
         //creating genesisBlock for Chain
-        LanacData data = new LanacData(0, new Date().getTime());
+        LanacData data = new LanacData(0, new Date().getTime(), 2);
         PeerIdentity genesisPeer = new PeerIdentity();
         String previousHash = "0";
 

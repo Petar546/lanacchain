@@ -79,7 +79,7 @@ public class SignedAction {
         String address = new String(addressBytes, StandardCharsets.UTF_8);
 
         int dataLen = buffer.getInt();
-        if (dataLen != 12) {
+        if (dataLen != 20) {
             throw new LanacDeserializationException("Invalid LanacData length. Expected 20, got: " + dataLen);
         }
         byte[] dataBytes = new byte[dataLen];

@@ -18,7 +18,7 @@ public class LanacChain {
         IO.println("Peer Address: " + peer1.getPeerAddress());
 
         // create data
-        LanacData actionData1 = new LanacData(1, System.currentTimeMillis());
+        LanacData actionData1 = new LanacData(1, System.currentTimeMillis(), 1);
 
         SignedAction action1;
         try {

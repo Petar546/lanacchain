@@ -48,14 +48,18 @@ public class PeerNode {
      * Interface for the Blockchain
      */
     public void commitToLocalChain(List<SignedAction> verifiedActions) {
-        // Sort actions by playerAddress to ensure determinism
+        // 1. Sort by address (for network-wide consensus)
+        // 2. Then sort by nonce (to process one player's moves in order)
         List<SignedAction> sortedActions = verifiedActions.stream()
-                .sorted(Comparator.comparing(SignedAction::getPeerAddress))
+                .sorted(Comparator.comparing(SignedAction::getPeerAddress)
+                        .thenComparingLong((signedAction) -> {
+                            return signedAction.getInputData().otuNumber();
+                        } ))
                 .toList();
-        // Create a hash of all actions
-        // Append to your local blockchain copy
-    }
 
+        System.out.println(sortedActions);
+        // Proceed with hashing and appending to the local blockchain
+    }
 
     // ACTING AS SERVER
     private void listenForPeers() throws LanacPeerConnectionException {
@@ -114,7 +118,7 @@ public class PeerNode {
 
 
     private void addToPendingBuffer(SignedAction action) {
-        long tick = action.getInputData().tick;
+        long tick = action.getInputData().tick();
 
         //add to buffer
         tickBuffer.computeIfAbsent(tick, k -> java.util.Collections.synchronizedList(new ArrayList<>()))
