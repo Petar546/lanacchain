@@ -27,7 +27,7 @@ public class PeerIdentityTest {
         boolean isAuthentic = Lanac.verifyAction(signedAction);
         IO.println("Verified: " + isAuthentic);
 
-        assertTrue(isAuthentic, "action is not authentic");
+        assertTrue(isAuthentic, "Action is not authentic");
 
     }
 

@@ -30,9 +30,8 @@ public class WKeyHandlerTest {
 
     @Test
     public void test__toPublicKeyError() {
-        // string which cant be converted to Public Key
-        String key_string = "rara u nana";
-        assertThrows(LanacKeyConversionException.class, () -> WKeyHandler.toPublicKey(key_string), "Throws LanacKeyConversionException");
+        String nonConvertableToKeyString = "rara u nana";
+        assertThrows(LanacKeyConversionException.class, () -> WKeyHandler.toPublicKey(nonConvertableToKeyString), "shouldnt be convertable to Key");
     }
 
 }
