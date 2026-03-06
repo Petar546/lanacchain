@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Comparator;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.kameni.lanacchain.testrunner.LanacAssert.*;
 
@@ -94,56 +96,58 @@ public class PeerNodeTest {
     public void test__P2PConnection() throws Exception {
         setUp();
 
-        PeerConnectionListener myListener1 = new PeerConnectionListener() {
+        CountDownLatch peerJoinedLatch = new CountDownLatch(2);
+        PeerConnectionListener myListener1asServer = new PeerConnectionListener() {
             @Override
             public void onPeerJoined(Socket s) {
                 IO.println("P1 New Inbound: " + s.getPort());
-                throw new RuntimeException("P1 New Inbound: " + s.getPort());
+                peerJoinedLatch.countDown();
             }
 
             @Override
-            public void onConnectedToPeer(Socket s) { IO.println("P1 New Outbound: " + s.getPort()); }
+            public void onConnectedToPeer(Socket s) {
+                IO.println("P1 New Outbound: " + s.getPort());
+            }
 
             @Override
             public void onPeerDisconnected(Socket s) {
-                System.out.println("P1 Peer Left: " + s.getRemoteSocketAddress());
+                IO.println("P1 Peer Left: " + s.getRemoteSocketAddress());
             }
         };
 
-        PeerConnectionListener myListener2 = new PeerConnectionListener() {
+        PeerConnectionListener myListener2asJoinee = new PeerConnectionListener() {
             @Override
             public void onPeerJoined(Socket s) { IO.println("P2 New Inbound: " + s.getPort()); }
 
             @Override
-            public void onConnectedToPeer(Socket s) { IO.println("P2 New Outbound: " + s.getPort()); }
+            public void onConnectedToPeer(Socket s) {
+                IO.println("P2 New Outbound: " + s.getPort());
+                peerJoinedLatch.countDown();
+            }
 
             @Override
             public void onPeerDisconnected(Socket s) {
-                System.out.println("P2 Peer Left: " + s.getRemoteSocketAddress());
+                IO.println("P2 Peer Left: " + s.getRemoteSocketAddress());
             }
         };
         // Use unique ports for the test environment
-        PeerNode node1 = new PeerNode(45001, myListener1);
-        PeerNode node2 = new PeerNode(45002, myListener2);
+        PeerNode node1asServer = new PeerNode(45001, myListener1asServer);
+        PeerNode node2asJoinee = new PeerNode(45002, myListener2asJoinee);
 
-        // Allow ServerSockets time to bind to the ports
+        //TODO: make a listener for the Peer node port binding so that no wait needs to be used, useful later also
         Thread.sleep(150);
 
         try {
-            node2.connectToPeer("127.0.0.1", 45001);
+            node2asJoinee.connectToPeer("127.0.0.1", 45001);
             // listener.onConnectedToPeer will write "P2 New Outbound: 45001"
         } catch (Exception e) {
             throw new RuntimeException("P2P Handshake failed: " + e.getMessage());
         }
 
-        // Wait for the background 'handlePeer' thread to initialize the socket
-        Thread.sleep(150);
-
-        // listener.onPeerJoined will write "P1 New Inbound: <insert port here>"
-
-        //TODO: bind assert with the peer Listener and assert true when actions happen
-        IO.println(node1.peerConnections.toString());
-        assertTrue(!node1.peerConnections.isEmpty(), "Connections fonud on node 1");
+        IO.println(node1asServer.peerConnections.toString());
+        assertTrue(!node1asServer.peerConnections.isEmpty(), "Connections not found on node 1");
+        // peerListener has latches which are checkeds
+        assertTrue(peerJoinedLatch.await(1, TimeUnit.SECONDS), "peerJoinedLatch failed, possibly a connection didnt happen");
     }
 
 
