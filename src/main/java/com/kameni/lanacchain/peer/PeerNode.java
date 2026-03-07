@@ -23,7 +23,20 @@ public class PeerNode {
     private final Map<Long, List<SignedAction>> tickBuffer = new ConcurrentHashMap<>();
     private long currentProcessingTick = 0;
 
+    public PeerNode(){
+        int autoAllocatePort = 0;
+        initPeerNode(autoAllocatePort, null);
+    }
+
+    public PeerNode(PeerConnectionListener listener){
+        int autoAllocatePort = 0;
+        initPeerNode(autoAllocatePort, listener);
+    }
     public PeerNode(int port, PeerConnectionListener listener) {
+        initPeerNode(port, listener);
+    }
+
+    private void initPeerNode(int port, PeerConnectionListener listener){
         // TODO: write a finder for a PeerNode free Port, if chosen port is unavailabe
         this.port = port;
         this.listener = listener;
@@ -34,6 +47,10 @@ public class PeerNode {
                 throw new RuntimeException(e);
             }
         }).start();
+    }
+
+    public Optional<PeerConnectionListener> getListener() {
+        return Optional.ofNullable(listener);
     }
 
     public boolean verifyIncomingAction(SignedAction action) {
@@ -67,7 +84,7 @@ public class PeerNode {
             while (true) {
                 Socket socket = serverSocket.accept();
                 peerConnections.add(socket);
-                if (listener != null) listener.onPeerJoined(socket);
+                getListener().ifPresent(l -> l.onPeerJoined(socket));
                 new Thread(() -> handlePeer(socket)).start();
             }
         } catch (IOException e) {
@@ -80,7 +97,7 @@ public class PeerNode {
         try {
             Socket socket = new Socket(ip, peerPort);
             peerConnections.add(socket);
-            if (listener != null) listener.onConnectedToPeer(socket);
+            getListener().ifPresent(l -> l.onConnectedToPeer(socket));
             new Thread(() -> handlePeer(socket)).start();
         } catch (IOException e) {
             throw new LanacPeerConnectionException(e);
@@ -104,9 +121,7 @@ public class PeerNode {
         } catch (IOException e) {
             // remove peer if disconnects
             peerConnections.remove(socket);
-            if (listener != null) {
-                listener.onPeerDisconnected(socket);
-            }
+            getListener().ifPresent(l -> l.onPeerDisconnected(socket));
             System.err.println("Peer disconnected. Remaining: " + peerConnections.size());
         } catch (LanacDeserializationException e) {
             // remove peer if disconnects
