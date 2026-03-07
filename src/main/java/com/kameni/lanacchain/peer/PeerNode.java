@@ -53,6 +53,10 @@ public class PeerNode {
         return Optional.ofNullable(listener);
     }
 
+    public int getPort() {
+        return port;
+    }
+
     public boolean verifyIncomingAction(SignedAction action) {
         try {
             return Lanac.verifyAction(action);
@@ -81,6 +85,10 @@ public class PeerNode {
     // ACTING AS SERVER
     private void listenForPeers() throws LanacPeerConnectionException {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
+            //set port to the chosen port(not 0)
+            port = serverSocket.getLocalPort();
+            getListener().ifPresent(l -> l.onPortChosen(port));
+
             while (true) {
                 Socket socket = serverSocket.accept();
                 peerConnections.add(socket);

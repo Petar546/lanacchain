@@ -58,20 +58,9 @@ public class PeerNodeTest {
     public void test__DeterministicSorting() throws Exception {
         setUp();
         List<SignedAction> capturedActions = new ArrayList<>();
-        PeerConnectionListener myListener = new PeerConnectionListener() {
-            @Override
-            public void onPeerJoined(Socket s) { System.out.println("P1 New Inbound: " + s.getPort()); }
 
-            @Override
-            public void onConnectedToPeer(Socket s) { System.out.println("P1 New Outbound: " + s.getPort()); }
-
-            @Override
-            public void onPeerDisconnected(Socket s) {
-                System.out.println("P1 Peer Left: " + s.getRemoteSocketAddress());
-            }
-        };
         // Anonymous subclass to intercept the internal blockchain commit
-        PeerNode node = new PeerNode(9999, myListener) {
+        PeerNode node = new PeerNode() {
             @Override
             public void commitToLocalChain(List<SignedAction> verifiedActions) {
                 List<SignedAction> sorted = verifiedActions.stream()
@@ -97,6 +86,8 @@ public class PeerNodeTest {
         setUp();
 
         CountDownLatch peerJoinedLatch = new CountDownLatch(2);
+        CountDownLatch portChosenLatch = new CountDownLatch(1);
+
         PeerConnectionListener myListener1asServer = new PeerConnectionListener() {
             @Override
             public void onPeerJoined(Socket s) {
@@ -129,16 +120,22 @@ public class PeerNodeTest {
             public void onPeerDisconnected(Socket s) {
                 IO.println("P2 Peer Left: " + s.getRemoteSocketAddress());
             }
+
+            @Override
+            public int onPortChosen(int port) {
+                portChosenLatch.countDown();
+                return PeerConnectionListener.super.onPortChosen(port);
+            }
         };
         // Use unique ports for the test environment
-        PeerNode node1asServer = new PeerNode(45001, myListener1asServer);
-        PeerNode node2asJoinee = new PeerNode(45002, myListener2asJoinee);
+        PeerNode node1asServer = new PeerNode(myListener1asServer);
+        PeerNode node2asJoinee = new PeerNode(myListener2asJoinee);
 
-        //TODO: make a listener for the Peer node port binding so that no wait needs to be used, useful later also
-        Thread.sleep(150);
+        //wait until port is chosen
+        portChosenLatch.await(1, TimeUnit.SECONDS);
 
         try {
-            node2asJoinee.connectToPeer("127.0.0.1", 45001);
+            node2asJoinee.connectToPeer("127.0.0.1", node1asServer.getPort());
             // listener.onConnectedToPeer will write "P2 New Outbound: 45001"
         } catch (Exception e) {
             throw new RuntimeException("P2P Handshake failed: " + e.getMessage());
