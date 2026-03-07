@@ -37,7 +37,6 @@ public class PeerNode {
     }
 
     private void initPeerNode(int port, PeerConnectionListener listener){
-        // TODO: write a finder for a PeerNode free Port, if chosen port is unavailabe
         this.port = port;
         this.listener = listener;
         new Thread(() -> {
