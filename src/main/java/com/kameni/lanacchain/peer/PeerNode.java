@@ -15,11 +15,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerNode {
 
-    public List<Socket> peerConnections = new ArrayList<>();
+    public final List<Socket> peerConnections = Collections.synchronizedList(new ArrayList<>());
     private PeerConnectionListener listener;
     private int port;
+    private ServerSocket serverSocket;
+    private volatile boolean running = true;
 
-    // Hash map of Signed actions happening and their in the buffer
     private final Map<Long, List<SignedAction>> tickBuffer = new ConcurrentHashMap<>();
     private long currentProcessingTick = 0;
 
@@ -32,35 +33,20 @@ public class PeerNode {
         int autoAllocatePort = 0;
         initPeerNode(autoAllocatePort, listener);
     }
+
     public PeerNode(int port, PeerConnectionListener listener) {
         initPeerNode(port, listener);
     }
 
-    private void initPeerNode(int initPort, PeerConnectionListener listener){
+    private void initPeerNode(int initPort, PeerConnectionListener listener) {
         this.listener = listener;
         new Thread(() -> {
             try {
                 listenForPeers(initPort);
             } catch (LanacPeerConnectionException e) {
-                throw new RuntimeException(e);
+                if (running) System.err.println("Server Error: " + e.getMessage());
             }
         }).start();
-    }
-
-    public Optional<PeerConnectionListener> getListener() {
-        return Optional.ofNullable(listener);
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public boolean verifyIncomingAction(SignedAction action) {
-        try {
-            return Lanac.verifyAction(action);
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     /**
@@ -80,21 +66,38 @@ public class PeerNode {
         // Proceed with hashing and appending to the local blockchain
     }
 
+    public void stop() {
+        this.running = false;
+        try {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+            }
+            synchronized (peerConnections) {
+                for (Socket s : peerConnections) {
+                    if (!s.isClosed()) s.close();
+                }
+                peerConnections.clear();
+            }
+        } catch (IOException e) {
+            System.err.println("Error during stop: " + e.getMessage());
+        }
+    }
+
     // ACTING AS SERVER
     private void listenForPeers(int listenPort) throws LanacPeerConnectionException {
-        try (ServerSocket serverSocket = new ServerSocket(listenPort)) {
-            //set port to the chosen port
+        try {
+            this.serverSocket = new ServerSocket(listenPort);
             this.port = serverSocket.getLocalPort();
             getListener().ifPresent(l -> l.onPortChosen(this.port));
 
-            while (true) {
+            while (running) {
                 Socket socket = serverSocket.accept();
                 peerConnections.add(socket);
                 getListener().ifPresent(l -> l.onPeerJoined(socket));
                 new Thread(() -> handlePeer(socket)).start();
             }
         } catch (IOException e) {
-            throw new LanacPeerConnectionException(e);
+            if (running) throw new LanacPeerConnectionException(e);
         }
     }
 
@@ -113,7 +116,7 @@ public class PeerNode {
     // Handle incoming data
     private void handlePeer(Socket socket) {
         try (DataInputStream in = new DataInputStream(socket.getInputStream())) {
-            while (!socket.isClosed()) {
+            while (running && !socket.isClosed()) {
                 int length = in.readInt();
                 byte[] inputData = new byte[length];
                 in.readFully(inputData);
@@ -125,10 +128,10 @@ public class PeerNode {
                 }
             }
         } catch (IOException e) {
-            // remove peer if disconnects
-            peerConnections.remove(socket);
-            getListener().ifPresent(l -> l.onPeerDisconnected(socket));
-            System.err.println("Peer disconnected. Remaining: " + peerConnections.size());
+            if (running) {
+                peerConnections.remove(socket);
+                getListener().ifPresent(l -> l.onPeerDisconnected(socket));
+            }
         } catch (LanacDeserializationException e) {
             // remove peer if disconnects
             System.err.println("Error during deserialization of data for Action");
@@ -136,7 +139,21 @@ public class PeerNode {
         }
     }
 
+    public Optional<PeerConnectionListener> getListener() {
+        return Optional.ofNullable(listener);
+    }
 
+    public int getPort() {
+        return port;
+    }
+
+    public boolean verifyIncomingAction(SignedAction action) {
+        try {
+            return Lanac.verifyAction(action);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     private void addToPendingBuffer(SignedAction action) {
         long tick = action.getInputData().tick();
@@ -165,7 +182,6 @@ public class PeerNode {
 
             tickBuffer.remove(tick);
             currentProcessingTick++;
-
             tryProcessTick(currentProcessingTick);
         }
     }

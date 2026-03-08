@@ -83,65 +83,47 @@ public class PeerNodeTest {
         setUp();
 
         CountDownLatch peerJoinedLatch = new CountDownLatch(2);
-        CountDownLatch portChosenLatch = new CountDownLatch(1);
+        CountDownLatch node1Ready = new CountDownLatch(1);
 
         PeerConnectionListener myListener1asServer = new PeerConnectionListener() {
             @Override
             public void onPeerJoined(Socket s) {
-                IO.println("P1 New Inbound: " + s.getPort());
                 peerJoinedLatch.countDown();
             }
-
             @Override
-            public void onConnectedToPeer(Socket s) {
-                IO.println("P1 New Outbound: " + s.getPort());
-            }
-
-            @Override
-            public void onPeerDisconnected(Socket s) {
-                IO.println("P1 Peer Left: " + s.getRemoteSocketAddress());
+            public int onPortChosen(int port) {
+                node1Ready.countDown();
+                return port;
             }
         };
 
         PeerConnectionListener myListener2asJoinee = new PeerConnectionListener() {
             @Override
-            public void onPeerJoined(Socket s) { IO.println("P2 New Inbound: " + s.getPort()); }
-
-            @Override
             public void onConnectedToPeer(Socket s) {
-                IO.println("P2 New Outbound: " + s.getPort());
                 peerJoinedLatch.countDown();
             }
-
-            @Override
-            public void onPeerDisconnected(Socket s) {
-                IO.println("P2 Peer Left: " + s.getRemoteSocketAddress());
-            }
-
-            @Override
-            public int onPortChosen(int port) {
-                portChosenLatch.countDown();
-                return PeerConnectionListener.super.onPortChosen(port);
-            }
         };
-        // Use unique ports for the test environment
+
         PeerNode node1asServer = new PeerNode(myListener1asServer);
         PeerNode node2asJoinee = new PeerNode(myListener2asJoinee);
 
-        //wait until port is chosen
-        portChosenLatch.await(1, TimeUnit.SECONDS);
-
         try {
-            node2asJoinee.connectToPeer("127.0.0.1", node1asServer.getPort());
-            // listener.onConnectedToPeer will write "P2 New Outbound: 45001"
-        } catch (Exception e) {
-            throw new RuntimeException("P2P Handshake failed: " + e.getMessage());
-        }
+            // Wait for server to actually bind to a port
+            assertTrue(node1Ready.await(2, TimeUnit.SECONDS), "node1asServer failed to bind port");
 
-        IO.println(node1asServer.peerConnections.toString());
-        assertTrue(!node1asServer.peerConnections.isEmpty(), "Connections not found on node 1");
-        // peerListener has latches which are checkeds
-        assertTrue(peerJoinedLatch.await(1, TimeUnit.SECONDS), "peerJoinedLatch failed, possibly a connection didnt happen");
+            // Act
+            node2asJoinee.connectToPeer("127.0.0.1", node1asServer.getPort());
+
+            // Assert
+            assertTrue(peerJoinedLatch.await(3, TimeUnit.SECONDS),
+                    "Handshake timed out. Latch count: " + peerJoinedLatch.getCount());
+
+            assertFalse(node1asServer.peerConnections.isEmpty(), "node1asServer has no connections");
+
+        } finally {
+            node1asServer.stop();
+            node2asJoinee.stop();
+        }
     }
 
 
@@ -151,9 +133,7 @@ public class PeerNodeTest {
 
         byte[] garbage = new byte[]{0, 1, 2, 3};
 
-        assertThrows(LanacDeserializationException.class, () -> {
-            SignedAction.deserialize(garbage);
-        }, "Node should throw an error when deserializing invalid byte arrays");
+        assertThrows(LanacDeserializationException.class, () -> SignedAction.deserialize(garbage), "Node should throw an error when deserializing invalid byte arrays");
     }
 
     @Test
