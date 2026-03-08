@@ -88,21 +88,29 @@ public class TestRunner {
         for (Method m : methods) {
             if (m.isAnnotationPresent(Test.class)) {
                 String currentMethodName = testClassName + "." + m.getName();
+
+                // Re-added: Start print
+                IO.print("------ Running ");
+                TestPrint.printColored(currentMethodName, Color.GREEN);
+                IO.println("... ------");
+
                 long timerStartTime = System.nanoTime();
 
                 try {
                     m.invoke(testInstance);
 
                     long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
-                    //default if for some reason no TestPassedSignal is passed
+
+                    // Re-added: Success print
+                    TestPrint.printColoredln(currentMethodName + " PASSED", Color.GREEN);
+
                     testResult.addResult(currentMethodName, fileName, 1, testDuration, true, null);
 
                 } catch (Exception e) {
                     long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
-                    Throwable cause = (e instanceof InvocationTargetException) ? e.getCause() : e;
+                    Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
 
                     int lineNumber = 1;
-
                     for (StackTraceElement element : cause.getStackTrace()) {
                         if (element.getClassName().contains(testClassName) && element.getMethodName().equals(m.getName())) {
                             lineNumber = element.getLineNumber();
@@ -111,7 +119,15 @@ public class TestRunner {
                     }
 
                     boolean isPassed = (cause instanceof TestPassedSignal);
-                    testResult.addResult(currentMethodName, fileName, lineNumber, duration, isPassed, isPassed ? null : cause);
+
+                    if (isPassed) {
+                        TestPrint.printColoredln(currentMethodName + " PASSED", Color.GREEN);
+                        testResult.addResult(currentMethodName, fileName, lineNumber, duration, true, null);
+                    } else {
+                        TestPrint.printColoredln(currentMethodName + " FAILED", Color.RED);
+                        cause.printStackTrace(); // Show why it failed immediately
+                        testResult.addResult(currentMethodName, fileName, lineNumber, duration, false, cause);
+                    }
                 }
             }
         }
