@@ -12,7 +12,6 @@ import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
 public class PeerIdentityTest {
 
     @Test
-
     public void test__peerIdentityTest() throws Exception{
         PeerIdentity peer1 = new PeerIdentity();
         IO.println("Peer Address: " + peer1.getPeerAddress());

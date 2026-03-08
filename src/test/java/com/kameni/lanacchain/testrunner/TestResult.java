@@ -7,12 +7,16 @@ public class TestResult {
     // Helper class to store specific details for each method
     public static class TestMethodData {
         public String methodName;
+        public String fileName;
+        public int lineNumber;
         public long durationMs;
         public boolean passed;
         public Throwable error;
 
-        public TestMethodData(String methodName, long durationMs, boolean passed, Throwable error) {
+        public TestMethodData(String methodName, String fileName, int lineNumber, long durationMs, boolean passed, Throwable error) {
             this.methodName = methodName;
+            this.fileName = fileName;
+            this.lineNumber = lineNumber;
             this.durationMs = durationMs;
             this.passed = passed;
             this.error = error;
@@ -25,8 +29,8 @@ public class TestResult {
         this.results.addAll(other.results);
     }
 
-    public void addResult(String name, long time, boolean passed, Throwable error) {
-        results.add(new TestMethodData(name, time, passed, error));
+    public void addResult(String name, String fileName, int lineNumber, long time, boolean passed, Throwable error) {
+        results.add(new TestMethodData(name, fileName, lineNumber, time, passed, error));
     }
 
     public List<TestMethodData> getPassed() {

@@ -3,7 +3,9 @@ package com.kameni.lanacchain.testrunner;
 import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.display.Color;
 import com.kameni.lanacchain.testrunner.display.TestPrint;
+import com.kameni.lanacchain.testrunner.exceptions.TestPassedSignal;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -37,36 +39,35 @@ public class TestRunner {
 
 
 
-
     private static void printResult(TestResult overallResult) {
-        int maxNameLength = overallResult.results.stream()
-                .mapToInt(r -> r.methodName.length())
+        int maxLinkLength = overallResult.results.stream()
+                .mapToInt(r -> (r.methodName + "(" + r.fileName + ":" + r.lineNumber + ")").length())
                 .max()
                 .orElse(40);
-        maxNameLength = Math.max(maxNameLength, 40);
+        maxLinkLength = Math.max(maxLinkLength, 40);
 
-        String headerFormat = "%-" + maxNameLength + "s | %-10s | %-8s";
-        String rowFormat = "%-" + maxNameLength + "s | %-4d ms    | ";
+        String headerFormat = "%-" + maxLinkLength + "s | %-10s | %-8s";
+        String rowFormat = "%-" + maxLinkLength + "s | %-4d ms    | ";
+        String separator = "-".repeat(maxLinkLength + 25);
 
         IO.println("\n================ TEST SUMMARY ================");
-        IO.println(String.format(headerFormat, "Method Name", "Time", "Status"));
-
-        // adjust line length based on dynamic width
-        String separator = "-".repeat(maxNameLength + 25);
+        IO.println(String.format(headerFormat, "Method Reference", "Time", "Status"));
         IO.println(separator);
 
         for (TestResult.TestMethodData data : overallResult.results) {
             String status = data.passed ? "PASSED" : "FAILED";
             Color statusColor = data.passed ? Color.GREEN : Color.RED;
 
-            IO.print(String.format(rowFormat, data.methodName, data.durationMs));
+            String clickableLink = String.format("%s(%s:%d)", data.methodName, data.fileName, data.lineNumber);
+
+            IO.print(String.format(rowFormat, clickableLink, data.durationMs));
             TestPrint.printColoredln(status, statusColor);
         }
 
         IO.println(separator);
 
-        int totalPassed = overallResult.getPassed().size();
-        int totalFailed = overallResult.getFailed().size();
+        int totalPassed = (int) overallResult.results.stream().filter(r -> r.passed).count();
+        int totalFailed = (int) overallResult.results.stream().filter(r -> !r.passed).count();
         long totalTime = overallResult.results.stream().mapToLong(r -> r.durationMs).sum();
 
         IO.print("Final Results: " + totalPassed + " Passed, ");
@@ -78,36 +79,39 @@ public class TestRunner {
         IO.println(" (Total Time: " + totalTime + " ms)");
     }
 
-
     public TestResult runMethodsOfInstance(Object testInstance) {
         String testClassName = testInstance.getClass().getSimpleName();
+        String fileName = testClassName + ".java";
         Method[] methods = testInstance.getClass().getDeclaredMethods();
         TestResult testResult = new TestResult();
 
         for (Method m : methods) {
             if (m.isAnnotationPresent(Test.class)) {
                 String currentMethodName = testClassName + "." + m.getName();
-                long startTime = System.nanoTime();
-                try {
-                    IO.print("------ Running ");
-                    TestPrint.printColored(currentMethodName, Color.GREEN);
-                    IO.println("... ------");
+                long timerStartTime = System.nanoTime();
 
+                try {
                     m.invoke(testInstance);
 
-                    long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-                    TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
-                    TestPrint.printColoredln(" in " + duration + "ms", Color.BOLD_WHITE);
-                    testResult.addResult(currentMethodName, duration, true, null);
+                    long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
+                    //default if for some reason no TestPassedSignal is passed
+                    testResult.addResult(currentMethodName, fileName, 1, testDuration, true, null);
 
                 } catch (Exception e) {
-                    long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-                    Throwable cause = (e.getCause() != null) ? e.getCause() : e;
+                    long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
+                    Throwable cause = (e instanceof InvocationTargetException) ? e.getCause() : e;
 
-                    TestPrint.printColoredln(currentMethodName + " FAILED", Color.RED);
-                    TestPrint.printColoredln(" after " + duration + "ms", Color.BOLD_WHITE);
-                    cause.printStackTrace();
-                    testResult.addResult(currentMethodName, duration, false, cause);
+                    int lineNumber = 1;
+
+                    for (StackTraceElement element : cause.getStackTrace()) {
+                        if (element.getClassName().contains(testClassName) && element.getMethodName().equals(m.getName())) {
+                            lineNumber = element.getLineNumber();
+                            break;
+                        }
+                    }
+
+                    boolean isPassed = (cause instanceof TestPassedSignal);
+                    testResult.addResult(currentMethodName, fileName, lineNumber, duration, isPassed, isPassed ? null : cause);
                 }
             }
         }
