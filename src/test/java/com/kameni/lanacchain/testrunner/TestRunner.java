@@ -89,7 +89,6 @@ public class TestRunner {
             if (m.isAnnotationPresent(Test.class)) {
                 String currentMethodName = testClassName + "." + m.getName();
 
-                // Re-added: Start print
                 IO.print("------ Running ");
                 TestPrint.printColored(currentMethodName, Color.GREEN);
                 IO.println("... ------");
@@ -101,7 +100,6 @@ public class TestRunner {
 
                     long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
 
-                    // Re-added: Success print
                     TestPrint.printColoredln(currentMethodName + " PASSED", Color.GREEN);
 
                     testResult.addResult(currentMethodName, fileName, 1, testDuration, true, null);
@@ -125,7 +123,7 @@ public class TestRunner {
                         testResult.addResult(currentMethodName, fileName, lineNumber, duration, true, null);
                     } else {
                         TestPrint.printColoredln(currentMethodName + " FAILED", Color.RED);
-                        cause.printStackTrace(); // Show why it failed immediately
+                        cause.printStackTrace();
                         testResult.addResult(currentMethodName, fileName, lineNumber, duration, false, cause);
                     }
                 }
