@@ -6,6 +6,7 @@ import com.kameni.lanacchain.testrunner.display.TestPrint;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class TestRunner {
     public class TestResult {
@@ -99,7 +100,8 @@ public class TestRunner {
                     TestPrint.printColored(currentMethodName, Color.GREEN);
                     IO.println("... ------");
 
-                    m.invoke(testInstance); // dynamic call
+                    timeMethod(m, testInstance, currentMethodName);
+
                     TestPrint.printColoredln(currentMethodName + " PASSED", Color.GREEN);
                     testResult.addPassed(currentMethodName);
                 } catch (Exception e) {
@@ -116,4 +118,17 @@ public class TestRunner {
         return testResult;
     }
 
+
+    private void timeMethod(Method method, Object object, String currentMethodName) throws  Exception{
+        long startTime = System.nanoTime();
+
+        method.invoke(object); // dynamic call
+
+        long endTime = System.nanoTime();
+        long durationInNanos = endTime - startTime;
+
+        long durationInMs = durationInNanos / 1_000_000;
+        TestPrint.printColoredln(currentMethodName  + " took " + durationInMs + " ms", Color.BOLD_WHITE);
+
+    }
 }
