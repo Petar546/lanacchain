@@ -34,7 +34,7 @@ public class TestRunner {
         }
         else {
             System.exit(0);
-        };
+        }
     }
 
 

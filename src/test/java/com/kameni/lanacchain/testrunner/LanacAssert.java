@@ -1,6 +1,5 @@
 package com.kameni.lanacchain.testrunner;
 
-import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.exceptions.TestPassedSignal;
 
 public class LanacAssert {
@@ -12,13 +11,18 @@ public class LanacAssert {
         throw new TestPassedSignal();
     }
 
+    public static void assertFalse(boolean condition, String failedMessage) {
+        assertTrue(!condition, failedMessage);
+    }
+
+
     public static void assertEquals(Object expected, Object actual, String failedMessage) {
         if (expected == null && actual == null) {
             throw new TestPassedSignal();
-        };
+        }
         if (expected != null && expected.equals(actual)){
             throw new TestPassedSignal();
-        };
+        }
 
         throw new RuntimeException("Assertion Failed: " + failedMessage
                 + " [Expected: " + expected + ", Actual: " + actual + "]");

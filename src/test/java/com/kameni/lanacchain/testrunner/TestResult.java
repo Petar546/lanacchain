@@ -6,12 +6,12 @@ import java.util.List;
 public class TestResult {
     // Helper class to store specific details for each method
     public static class TestMethodData {
-        public String methodName;
-        public String fileName;
-        public int lineNumber;
-        public long durationMs;
-        public boolean passed;
-        public Throwable error;
+        public final String methodName;
+        public final String fileName;
+        public final int lineNumber;
+        public final long durationMs;
+        public final boolean passed;
+        public final Throwable error;
 
         public TestMethodData(String methodName, String fileName, int lineNumber, long durationMs, boolean passed, Throwable error) {
             this.methodName = methodName;
