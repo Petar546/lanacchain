@@ -9,41 +9,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class TestRunner {
-    public class TestResult {
-        private Set<String> passed;
-        private Set<String> failed;
-
-        TestResult(Set<String> passed, Set<String> failed) {
-            this.passed = passed;
-            this.failed = failed;
-        }
-        TestResult() {
-            this.passed = new HashSet<>();
-            this.failed = new HashSet<>();
-        }
-
-        void add(TestResult otherTestResult){
-            this.passed.addAll(otherTestResult.passed);
-            this.failed.addAll(otherTestResult.failed);
-        }
-
-        public Set<String> getFailed() {
-            return failed;
-        }
-
-        public Set<String> getPassed() {
-            return passed;
-        }
-
-        public void addPassed(String passedTestName) {
-            passed.add(passedTestName);
-        }
-
-        public void addFailed(String failedTestName) {
-            failed.add(failedTestName);
-        }
-
-    }
 
     void main(String[] args) {
         IO.println("------------ Starting Tests ------------");
@@ -74,61 +39,79 @@ public class TestRunner {
 
 
     private static void printResult(TestResult overallResult) {
-        IO.println("\n---------------------------------");
-        IO.print("Results: ");
-        //if any test has failed red, else make passed green :D
-        if (!overallResult.getFailed().isEmpty()){
-            IO.print(overallResult.getPassed().size() + " Passed");
-            IO.print(", ");
-            TestPrint.printColoredln(overallResult.getFailed().size() + " Failed", Color.RED);
-        }else{
-            TestPrint.printColored(overallResult.getPassed().size() + " Passed", Color.GREEN);
-            IO.print(", ");
-            IO.println(overallResult.getFailed().size() + " Failed");
+        int maxNameLength = overallResult.results.stream()
+                .mapToInt(r -> r.methodName.length())
+                .max()
+                .orElse(40);
+        maxNameLength = Math.max(maxNameLength, 40);
+
+        String headerFormat = "%-" + maxNameLength + "s | %-10s | %-8s";
+        String rowFormat = "%-" + maxNameLength + "s | %-4d ms    | ";
+
+        IO.println("\n================ TEST SUMMARY ================");
+        IO.println(String.format(headerFormat, "Method Name", "Time", "Status"));
+
+        // adjust line length based on dynamic width
+        String separator = "-".repeat(maxNameLength + 25);
+        IO.println(separator);
+
+        for (TestResult.TestMethodData data : overallResult.results) {
+            String status = data.passed ? "PASSED" : "FAILED";
+            Color statusColor = data.passed ? Color.GREEN : Color.RED;
+
+            IO.print(String.format(rowFormat, data.methodName, data.durationMs));
+            TestPrint.printColoredln(status, statusColor);
         }
+
+        IO.println(separator);
+
+        int totalPassed = overallResult.getPassed().size();
+        int totalFailed = overallResult.getFailed().size();
+        long totalTime = overallResult.results.stream().mapToLong(r -> r.durationMs).sum();
+
+        IO.print("Final Results: " + totalPassed + " Passed, ");
+        if (totalFailed > 0) {
+            TestPrint.printColored(totalFailed + " Failed", Color.RED);
+        } else {
+            IO.print("0 Failed");
+        }
+        IO.println(" (Total Time: " + totalTime + " ms)");
     }
+
 
     public TestResult runMethodsOfInstance(Object testInstance) {
         String testClassName = testInstance.getClass().getSimpleName();
         Method[] methods = testInstance.getClass().getDeclaredMethods();
         TestResult testResult = new TestResult();
+
         for (Method m : methods) {
-            String currentMethodName = testClassName + "."  + m.getName();
             if (m.isAnnotationPresent(Test.class)) {
+                String currentMethodName = testClassName + "." + m.getName();
+                long startTime = System.nanoTime();
                 try {
                     IO.print("------ Running ");
                     TestPrint.printColored(currentMethodName, Color.GREEN);
                     IO.println("... ------");
 
-                    timeMethod(m, testInstance, currentMethodName);
+                    m.invoke(testInstance);
 
-                    TestPrint.printColoredln(currentMethodName + " PASSED", Color.GREEN);
-                    testResult.addPassed(currentMethodName);
+                    long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+                    TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
+                    TestPrint.printColoredln(" in " + duration + "ms", Color.BOLD_WHITE);
+                    testResult.addResult(currentMethodName, duration, true, null);
+
                 } catch (Exception e) {
-                    TestPrint.printColoredln(currentMethodName + " FAILED", Color.RED);
-
-                    // unwrapping exception to see actual error
+                    long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
                     Throwable cause = (e.getCause() != null) ? e.getCause() : e;
+
+                    TestPrint.printColoredln(currentMethodName + " FAILED", Color.RED);
+                    TestPrint.printColoredln(" after " + duration + "ms", Color.BOLD_WHITE);
                     cause.printStackTrace();
-                    testResult.addFailed(currentMethodName);
+                    testResult.addResult(currentMethodName, duration, false, cause);
                 }
             }
         }
-
         return testResult;
     }
 
-
-    private void timeMethod(Method method, Object object, String currentMethodName) throws  Exception{
-        long startTime = System.nanoTime();
-
-        method.invoke(object); // dynamic call
-
-        long endTime = System.nanoTime();
-        long durationInNanos = endTime - startTime;
-
-        long durationInMs = durationInNanos / 1_000_000;
-        TestPrint.printColoredln(currentMethodName  + " took " + durationInMs + " ms", Color.BOLD_WHITE);
-
-    }
 }
