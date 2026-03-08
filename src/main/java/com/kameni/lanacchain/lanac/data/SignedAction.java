@@ -70,36 +70,46 @@ public class SignedAction {
     public static SignedAction deserialize(byte[] bytes) throws LanacDeserializationException {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
 
+        String address = getAddressBytes(buffer);
+        LanacData lanacData = getLanacDataBytes(buffer);
+        byte[] signature = getSignatureBytes(buffer);
+
+        return new SignedAction(lanacData, address, signature);
+    }
+
+    private static String getAddressBytes(ByteBuffer buffer) throws LanacDeserializationException {
         int addressLength = buffer.getInt();
-        if (addressLength <= 0 || addressLength > 392) { // Sanity check for a String address
+        if (addressLength <= 0 || addressLength > 392) {
             throw new LanacDeserializationException("Invalid address length: " + addressLength);
         }
         byte[] addressBytes = new byte[addressLength];
         buffer.get(addressBytes);
-        String address = new String(addressBytes, StandardCharsets.UTF_8);
+        return new String(addressBytes, StandardCharsets.UTF_8);
+    }
 
+    private static LanacData getLanacDataBytes(ByteBuffer buffer) throws LanacDeserializationException {
         int dataLen = buffer.getInt();
         if (dataLen != 20) {
             throw new LanacDeserializationException("Invalid LanacData length. Expected 20, got: " + dataLen);
         }
         byte[] dataBytes = new byte[dataLen];
         buffer.get(dataBytes);
-        LanacData lanacData = LanacData.fromBytes(dataBytes);
+        return LanacData.fromBytes(dataBytes);
+    }
 
-        if (!buffer.hasRemaining()) throw new LanacDeserializationException("Buffer underflow: Missing signature length");
+    private static byte[] getSignatureBytes(ByteBuffer buffer) throws LanacDeserializationException {
+        if (!buffer.hasRemaining()) {
+            throw new LanacDeserializationException("Buffer underflow: Missing signature length");
+        }
         int sigLen = buffer.getInt();
-        if (sigLen <= 0 || sigLen > 1024) { // Signatures are usually 64-512 bytes
+        if (sigLen <= 0 || sigLen > 1024) {
             throw new LanacDeserializationException("Invalid signature length: " + sigLen);
         }
-
         if (buffer.remaining() < sigLen) {
             throw new LanacDeserializationException("Malformed packet: Signature truncated");
         }
-
         byte[] signature = new byte[sigLen];
         buffer.get(signature);
-
-        return new SignedAction(lanacData, address, signature);
+        return signature;
     }
-
 }
