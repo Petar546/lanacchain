@@ -36,12 +36,11 @@ public class PeerNode {
         initPeerNode(port, listener);
     }
 
-    private void initPeerNode(int port, PeerConnectionListener listener){
-        this.port = port;
+    private void initPeerNode(int initPort, PeerConnectionListener listener){
         this.listener = listener;
         new Thread(() -> {
             try {
-                listenForPeers();
+                listenForPeers(initPort);
             } catch (LanacPeerConnectionException e) {
                 throw new RuntimeException(e);
             }
@@ -82,11 +81,11 @@ public class PeerNode {
     }
 
     // ACTING AS SERVER
-    private void listenForPeers() throws LanacPeerConnectionException {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            //set port to the chosen port(not 0)
-            port = serverSocket.getLocalPort();
-            getListener().ifPresent(l -> l.onPortChosen(port));
+    private void listenForPeers(int listenPort) throws LanacPeerConnectionException {
+        try (ServerSocket serverSocket = new ServerSocket(listenPort)) {
+            //set port to the chosen port
+            this.port = serverSocket.getLocalPort();
+            getListener().ifPresent(l -> l.onPortChosen(this.port));
 
             while (true) {
                 Socket socket = serverSocket.accept();
