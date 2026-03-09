@@ -1,0 +1,71 @@
+package com.kameni.lanacchain.peer;
+
+import com.kameni.lanacchain.lanac.data.SignedAction;
+
+import java.net.Socket;
+import java.util.Comparator;
+import java.util.List;
+
+public class Peer {
+    private PeerIdentity peerIdentity;
+    private PeerNode peerNode;
+    private PeerConnectionListener peerConnectionListener = new PeerConnectionListener() {
+        @Override
+        public void onPeerJoined(Socket socket) {
+            IO.println("Peer joined on Socket " + socket);
+            PeerConnectionListener.super.onPeerJoined(socket);
+        }
+
+        @Override
+        public void onConnectedToPeer(Socket socket) {
+            IO.println("Connected to peer on Socket " + socket);
+        }
+
+        @Override
+        public void onPeerDisconnected(Socket socket) {
+            IO.println("Peer disconeccted Socket " + socket);
+        }
+
+        @Override
+        public int onPortChosen(int port) {
+            IO.println("Port " + port + " has been chosen by Peer");
+            return port;
+        }
+
+        @Override
+        public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {
+            commitToLocalChain(actionsToCommitToLocalChain);
+        }
+    };
+
+    Peer(){
+        peerIdentity = new PeerIdentity();
+        peerNode = new PeerNode(peerConnectionListener);
+    }
+
+
+    protected List<SignedAction> sortActions(List<SignedAction> actionsToSort){
+        // 1. address 2. nonce
+        List<SignedAction> sortedActions = actionsToSort.stream()
+                .sorted(Comparator.comparing(SignedAction::getPeerAddress)
+                        .thenComparingLong((signedAction) -> {
+                            return signedAction.getInputData().otuNumber();
+                        } ))
+                .toList();
+
+        System.out.println(sortedActions);
+        return sortedActions;
+    }
+    /**
+     * Interface for the Blockchain
+     */
+    public void commitToLocalChain(List<SignedAction> verifiedActions) {
+
+        List<SignedAction> sortedActions = sortActions(verifiedActions);
+        sortedActions.forEach((a) -> {
+
+        });
+        // Proceed with hashing and appending to the local blockchain
+    }
+
+}

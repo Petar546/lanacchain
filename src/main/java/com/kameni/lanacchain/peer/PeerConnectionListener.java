@@ -1,6 +1,9 @@
 package com.kameni.lanacchain.peer;
 
+import com.kameni.lanacchain.lanac.data.SignedAction;
+
 import java.net.Socket;
+import java.util.List;
 
 public interface PeerConnectionListener {
 
@@ -13,4 +16,6 @@ public interface PeerConnectionListener {
     default int onPortChosen(int port){
         return port;
     }
+
+    void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain);
 }

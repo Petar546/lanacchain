@@ -34,7 +34,7 @@ public class PeerNode {
         initPeerNode(autoAllocatePort, listener);
     }
 
-    public PeerNode(int port, PeerConnectionListener listener) {
+    protected PeerNode(int port, PeerConnectionListener listener) {
         initPeerNode(port, listener);
     }
 
@@ -49,22 +49,6 @@ public class PeerNode {
         }).start();
     }
 
-    /**
-     * Interface for the Blockchain
-     */
-    public void commitToLocalChain(List<SignedAction> verifiedActions) {
-        // 1. Sort by address (for network-wide consensus)
-        // 2. Then sort by nonce (to process one player's moves in order)
-        List<SignedAction> sortedActions = verifiedActions.stream()
-                .sorted(Comparator.comparing(SignedAction::getPeerAddress)
-                        .thenComparingLong((signedAction) -> {
-                            return signedAction.getInputData().otuNumber();
-                        } ))
-                .toList();
-
-        System.out.println(sortedActions);
-        // Proceed with hashing and appending to the local blockchain
-    }
 
     public void stop() {
         this.running = false;
@@ -178,7 +162,12 @@ public class PeerNode {
         List<SignedAction> actionsThisTick = tickBuffer.get(tick);
 
         if (isTickComplete(tick)) {
-            commitToLocalChain(actionsThisTick);
+            if (getListener().isPresent()){
+                getListener().get().onCommitToLocalChain(actionsThisTick);
+
+            }else {
+                throw new RuntimeException("Cant commit To Local Chain because no listener is present");
+            }
 
             tickBuffer.remove(tick);
             currentProcessingTick++;

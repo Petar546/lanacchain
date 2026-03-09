@@ -51,32 +51,6 @@ public class PeerNodeTest {
         assertTrue(Arrays.equals(actionA.getSignature(), reconstructed.getSignature()), "Cryptographic signature mismatch");
     }
 
-    @Test
-    public void test__DeterministicSorting() throws Exception {
-        setUp();
-        List<SignedAction> capturedActions = new ArrayList<>();
-
-        // Anonymous subclass to intercept the internal blockchain commit
-        PeerNode node = new PeerNode() {
-            @Override
-            public void commitToLocalChain(List<SignedAction> verifiedActions) {
-                List<SignedAction> sorted = verifiedActions.stream()
-                        .sorted(Comparator.comparing(SignedAction::getPeerAddress))
-                        .toList();
-                capturedActions.addAll(sorted);
-            }
-        };
-
-        // Add actions to verify the sorting logic inside PeerNode
-        List<SignedAction> unsorted = List.of(actionA, actionB);
-        node.commitToLocalChain(unsorted);
-
-        String first = capturedActions.get(0).getPeerAddress();
-        String second = capturedActions.get(1).getPeerAddress();
-
-        // Lexicographical check: ensures all peers process in alphabetical order
-        assertTrue(first.compareTo(second) <= 0, "Blockchain determinism failed: Peer addresses are not sorted");
-    }
 
     @Test
     public void test__P2PConnection() throws Exception {
@@ -95,6 +69,9 @@ public class PeerNodeTest {
                 node1Ready.countDown();
                 return port;
             }
+
+            @Override
+            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {}
         };
 
         PeerConnectionListener myListener2asJoinee = new PeerConnectionListener() {
@@ -102,6 +79,9 @@ public class PeerNodeTest {
             public void onConnectedToPeer(Socket s) {
                 peerJoinedLatch.countDown();
             }
+
+            @Override
+            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {}
         };
 
         PeerNode node1asServer = new PeerNode(myListener1asServer);
@@ -150,6 +130,9 @@ public class PeerNodeTest {
             public void onPeerDisconnected(Socket s) {
                 System.out.println("P1 Peer Left: " + s.getRemoteSocketAddress());
             }
+
+            @Override
+            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {}
         };
         PeerNode node = new PeerNode(45003, myListener);
         byte[] fakeSignature = new byte[]{ 0x13, 0x37, 0x00 };

@@ -30,4 +30,23 @@ public class PeerIdentityTest {
 
     }
 
+    @Test
+    public void test__peerIdentityTest2() throws Exception{
+        PeerIdentity peer1 = new PeerIdentity();
+        IO.println("Peer Address: " + peer1.getPeerAddress());
+
+        // create data
+        LanacData action1 = new LanacData(1, System.currentTimeMillis(), 4);
+
+        // sign action
+        SignedAction signedAction = new SignedAction(action1, peer1);
+
+        // verify
+        boolean isAuthentic = Lanac.verifyAction(signedAction);
+        IO.println("Verified: " + isAuthentic);
+
+        assertTrue(isAuthentic, "Action is not authentic");
+
+    }
+
 }
