@@ -84,8 +84,10 @@ public class PeerNodeTest {
             public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {}
         };
 
-        PeerNode node1asServer = new PeerNode(myListener1asServer);
-        PeerNode node2asJoinee = new PeerNode(myListener2asJoinee);
+        PeerNode node1asServer = new PeerNode();
+        node1asServer.addListener(myListener1asServer);
+        PeerNode node2asJoinee = new PeerNode();
+        node2asJoinee.addListener(myListener2asJoinee);
 
         try {
             // Wait for server to actually bind to a port
@@ -134,7 +136,8 @@ public class PeerNodeTest {
             @Override
             public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {}
         };
-        PeerNode node = new PeerNode(45003, myListener);
+        PeerNode node = new PeerNode(45003);
+        node.addListener(myListener);
         byte[] fakeSignature = new byte[]{ 0x13, 0x37, 0x00 };
         SignedAction maliciousAction = LanacTestUtils.createTamperedAction(actionA.getInputData(), actionA.getPeerAddress(), fakeSignature);
 

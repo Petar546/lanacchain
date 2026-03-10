@@ -42,9 +42,10 @@ public class Peer {
         }
     };
 
-    Peer() {
+    public Peer() {
         peerIdentity = new PeerIdentity();
-        peerNode = new PeerNode(peerConnectionListener);
+        peerNode = new PeerNode();
+        peerNode.addListener(peerConnectionListener);
     }
 
 

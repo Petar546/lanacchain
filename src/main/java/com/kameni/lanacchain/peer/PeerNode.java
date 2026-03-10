@@ -14,15 +14,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerNode {
-    private enum PeerNodeNotification{
-        PEER_JOINED,
-        CONNECTED_TO_PEER,
-        PEER_DISCONNECTED,
-        PORT_CHOSEN,
-        COMMIT_TO_LOCAL_CHAIN
-    }
+
     public final List<Socket> peerConnections = Collections.synchronizedList(new ArrayList<>());
-    private List<PeerConnectionListener> listeners;
+    protected PeerNodeListenerManager peerNodeListenerManager;
     private int port;
     private ServerSocket serverSocket;
     private volatile boolean running = true;
@@ -40,6 +34,7 @@ public class PeerNode {
     }
 
     private void initPeerNode(int initPort) {
+        peerNodeListenerManager = new PeerNodeListenerManager();
         new Thread(() -> {
             try {
                 listenForPeers(initPort);
@@ -72,12 +67,13 @@ public class PeerNode {
         try {
             this.serverSocket = new ServerSocket(listenPort);
             this.port = serverSocket.getLocalPort();
-            getListener().ifPresent(l -> l.onPortChosen(this.port));
+
+            peerNodeListenerManager.notifyAll(PeerConnectionListener::onPortChosen, this.port);
 
             while (running) {
                 Socket socket = serverSocket.accept();
                 peerConnections.add(socket);
-                getListener().ifPresent(l -> l.onPeerJoined(socket));
+                peerNodeListenerManager.notifyAll(PeerConnectionListener::onPeerJoined, socket);
                 new Thread(() -> handlePeer(socket)).start();
             }
         } catch (IOException e) {
@@ -90,7 +86,7 @@ public class PeerNode {
         try {
             Socket socket = new Socket(ip, peerPort);
             peerConnections.add(socket);
-            getListener().ifPresent(l -> l.onConnectedToPeer(socket));
+            peerNodeListenerManager.notifyAll(PeerConnectionListener::onConnectedToPeer, socket);
             new Thread(() -> handlePeer(socket)).start();
         } catch (IOException e) {
             throw new LanacPeerConnectionException(e);
@@ -114,7 +110,8 @@ public class PeerNode {
         } catch (IOException e) {
             if (running) {
                 peerConnections.remove(socket);
-                getListener().ifPresent(l -> l.onPeerDisconnected(socket));
+                peerNodeListenerManager.notifyAll(PeerConnectionListener::onPeerDisconnected, socket);
+
             }
         } catch (LanacDeserializationException e) {
             // remove peer if disconnects
@@ -158,8 +155,8 @@ public class PeerNode {
         List<SignedAction> actionsThisTick = tickBuffer.get(tick);
 
         if (isTickComplete(tick)) {
-            if (getListener().isPresent()) {
-                getListener().get().onCommitToLocalChain(actionsThisTick);
+            if (peerNodeListenerManager.hasListeners()) {
+                peerNodeListenerManager.notifyAll(PeerConnectionListener::onCommitToLocalChain, actionsThisTick);
 
             } else {
                 throw new RuntimeException("Cant commit To Local Chain because no listener is present");
@@ -186,8 +183,11 @@ public class PeerNode {
         }
     }
 
+    public void addListener(PeerConnectionListener listener) {
+        peerNodeListenerManager.addListener(listener);
+    }
 
-    private void notifySubscribers(PeerNodeNotification notification){
-
+    public void removeListener(PeerConnectionListener listener) {
+        peerNodeListenerManager.removeListener(listener);
     }
 }
