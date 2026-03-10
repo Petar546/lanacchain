@@ -5,23 +5,14 @@ import java.util.List;
 
 public class TestResult {
     // Helper class to store specific details for each method
-    public static class TestMethodData {
-        public final String methodName;
-        public final String fileName;
-        public final int lineNumber;
-        public final long durationMs;
-        public final boolean passed;
-        public final Throwable error;
-
-        public TestMethodData(String methodName, String fileName, int lineNumber, long durationMs, boolean passed, Throwable error) {
-            this.methodName = methodName;
-            this.fileName = fileName;
-            this.lineNumber = lineNumber;
-            this.durationMs = durationMs;
-            this.passed = passed;
-            this.error = error;
-        }
-    }
+        public record TestMethodData(
+                String methodName,
+                String fileName,
+                int lineNumber,
+                long durationMs,
+                boolean passed,
+                Throwable error
+        ){}
 
     final List<TestMethodData> results = new ArrayList<>();
 

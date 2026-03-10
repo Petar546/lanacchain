@@ -1,5 +1,6 @@
 package com.kameni.lanacchain.peer;
 
+import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 
 import java.net.Socket;
@@ -9,6 +10,8 @@ import java.util.List;
 public class Peer {
     private PeerIdentity peerIdentity;
     private PeerNode peerNode;
+    private Lanac lanac = new Lanac();
+
     private PeerConnectionListener peerConnectionListener = new PeerConnectionListener() {
         @Override
         public void onPeerJoined(Socket socket) {
@@ -63,10 +66,14 @@ public class Peer {
     public void commitToLocalChain(List<SignedAction> verifiedActions) {
 
         List<SignedAction> sortedActions = sortActions(verifiedActions);
-        sortedActions.forEach((a) -> {
-
-        });
         // Proceed with hashing and appending to the local blockchain
+        sortedActions.forEach((a) -> {
+            lanac.addBlock(a);
+        });
+    }
+
+    protected Lanac getLanac(){
+        return lanac;
     }
 
 }
