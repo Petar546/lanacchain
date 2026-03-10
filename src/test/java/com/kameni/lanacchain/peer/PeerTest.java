@@ -2,6 +2,7 @@ package com.kameni.lanacchain.peer;
 
 import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
+import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.testrunner.LanacTestUtils;
@@ -51,6 +52,34 @@ public class PeerTest {
 
         // Lexicographical check: ensures all peers process in alphabetical order
         assertTrue(first.compareTo(second) <= 0, "Blockchain determinism failed: Peer addresses are not sorted");
+    }
+
+    @Test
+    public void test__commitToLocalChain(){
+        Peer peer = new Peer();
+
+        // Add actions to verify the sorting logic inside PeerNode
+        List<SignedAction> unsorted = List.of(actionA, actionB);
+        List<SignedAction> sorted = peer.sortActions(unsorted);
+
+        String first = sorted.get(0).getPeerAddress();
+        String second = sorted.get(1).getPeerAddress();
+        Lanac lanac = peer.getLanac();
+        assertTrue(lanac.isChainValid(), "Chain isnt valid");
+
+        for (int i = 0; i < lanac.getBlockchainSize(); i++) {
+            String blockDisplay = String.format("Block[%d] Hash: %s | Prev: %s",
+                    i,
+                    lanac.getBlockAtIndex(i).getHash(),
+                    lanac.getBlockAtIndex(i).getPreviousHash()
+            );
+
+            IO.println(blockDisplay);
+        }
+
+        // Lexicographical check: ensures all peers process in alphabetical order
+        assertTrue(first.compareTo(second) <= 0, "Blockchain determinism failed: Peer addresses are not sorted");
+
     }
 
 
