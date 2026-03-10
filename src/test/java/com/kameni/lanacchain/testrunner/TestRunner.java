@@ -5,7 +5,6 @@ import com.kameni.lanacchain.testrunner.display.Color;
 import com.kameni.lanacchain.testrunner.display.TestPrint;
 import com.kameni.lanacchain.testrunner.exceptions.TestPassedSignal;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +40,7 @@ public class TestRunner {
 
     private static void printResult(TestResult overallResult) {
         int maxLinkLength = overallResult.results.stream()
-                .mapToInt(r -> (r.methodName + "(" + r.fileName + ":" + r.lineNumber + ")").length())
+                .mapToInt(r -> (r.methodName() + "(" + r.fileName() + ":" + r.lineNumber() + ")").length())
                 .max()
                 .orElse(40);
         maxLinkLength = Math.max(maxLinkLength, 40);
@@ -55,20 +54,20 @@ public class TestRunner {
         IO.println(separator);
 
         for (TestResult.TestMethodData data : overallResult.results) {
-            String status = data.passed ? "PASSED" : "FAILED";
-            Color statusColor = data.passed ? Color.GREEN : Color.RED;
+            String status = data.passed() ? "PASSED" : "FAILED";
+            Color statusColor = data.passed() ? Color.GREEN : Color.RED;
 
-            String clickableLink = String.format("%s(%s:%d)", data.methodName, data.fileName, data.lineNumber);
+            String clickableLink = String.format("%s(%s:%d)", data.methodName(), data.fileName(), data.lineNumber());
 
-            IO.print(String.format(rowFormat, clickableLink, data.durationMs));
+            IO.print(String.format(rowFormat, clickableLink, data.durationMs()));
             TestPrint.printColoredln(status, statusColor);
         }
 
         IO.println(separator);
 
-        int totalPassed = (int) overallResult.results.stream().filter(r -> r.passed).count();
-        int totalFailed = (int) overallResult.results.stream().filter(r -> !r.passed).count();
-        long totalTime = overallResult.results.stream().mapToLong(r -> r.durationMs).sum();
+        int totalPassed = (int) overallResult.results.stream().filter(r -> r.passed()).count();
+        int totalFailed = (int) overallResult.results.stream().filter(r -> !r.passed()).count();
+        long totalTime = overallResult.results.stream().mapToLong(r -> r.durationMs()).sum();
 
         IO.print("Final Results: " + totalPassed + " Passed, ");
         if (totalFailed > 0) {
