@@ -24,12 +24,12 @@ public class PeerNode {
     private final Map<Long, List<SignedAction>> tickBuffer = new ConcurrentHashMap<>();
     private long currentProcessingTick = 0;
 
-    public PeerNode(){
+    public PeerNode() {
         int autoAllocatePort = 0;
         initPeerNode(autoAllocatePort, null);
     }
 
-    public PeerNode(PeerConnectionListener listener){
+    public PeerNode(PeerConnectionListener listener) {
         int autoAllocatePort = 0;
         initPeerNode(autoAllocatePort, listener);
     }
@@ -119,7 +119,7 @@ public class PeerNode {
         } catch (LanacDeserializationException e) {
             // remove peer if disconnects
             System.err.println("Error during deserialization of data for Action");
-            throw new RuntimeException("Error during deserialization of data for Action" , e);
+            throw new RuntimeException("Error during deserialization of data for Action", e);
         }
     }
 
@@ -150,7 +150,6 @@ public class PeerNode {
     }
 
 
-
     private boolean isTickComplete(long tick) {
         List<SignedAction> actionsThisTick = tickBuffer.get(tick);
 
@@ -162,10 +161,10 @@ public class PeerNode {
         List<SignedAction> actionsThisTick = tickBuffer.get(tick);
 
         if (isTickComplete(tick)) {
-            if (getListener().isPresent()){
+            if (getListener().isPresent()) {
                 getListener().get().onCommitToLocalChain(actionsThisTick);
 
-            }else {
+            } else {
                 throw new RuntimeException("Cant commit To Local Chain because no listener is present");
             }
 

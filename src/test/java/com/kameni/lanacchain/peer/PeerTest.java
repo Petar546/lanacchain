@@ -28,7 +28,7 @@ public class PeerTest {
 
     void setUp() throws LanacSignatureException {
         // Included 0 as the tick for the blockchain height
-        LanacData sampleData = new LanacData(100,0, 5);
+        LanacData sampleData = new LanacData(100, 0, 5);
 
         peerIdentity1 = new PeerIdentity();
         peerIdentity2 = new PeerIdentity();

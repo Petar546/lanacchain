@@ -38,24 +38,25 @@ public class Peer {
         }
     };
 
-    Peer(){
+    Peer() {
         peerIdentity = new PeerIdentity();
         peerNode = new PeerNode(peerConnectionListener);
     }
 
 
-    protected List<SignedAction> sortActions(List<SignedAction> actionsToSort){
+    protected List<SignedAction> sortActions(List<SignedAction> actionsToSort) {
         // 1. address 2. nonce
         List<SignedAction> sortedActions = actionsToSort.stream()
                 .sorted(Comparator.comparing(SignedAction::getPeerAddress)
                         .thenComparingLong((signedAction) -> {
                             return signedAction.getInputData().otuNumber();
-                        } ))
+                        }))
                 .toList();
 
         System.out.println(sortedActions);
         return sortedActions;
     }
+
     /**
      * Interface for the Blockchain
      */

@@ -26,7 +26,7 @@ public class Lanac {
         try {
             genesisAction = new SignedAction(data, genesisPeer);
 
-        }catch (LanacSignatureException e){
+        } catch (LanacSignatureException e) {
             throw new RuntimeException(e);
         }
         blockchain.add(new Block(genesisAction, previousHash));
