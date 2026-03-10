@@ -14,27 +14,29 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerNode {
-
     public final List<Socket> peerConnections = Collections.synchronizedList(new ArrayList<>());
     protected PeerNodeListenerManager peerNodeListenerManager;
     private int port;
     private ServerSocket serverSocket;
-    private volatile boolean running = true;
+    private volatile boolean running = false;
 
     private final Map<Long, List<SignedAction>> tickBuffer = new ConcurrentHashMap<>();
     private long currentProcessingTick = 0;
+    private final int initPort;
 
     public PeerNode() {
-        int autoAllocatePort = 0;
-        initPeerNode(autoAllocatePort);
+        this(0);
     }
 
-    protected PeerNode(int port) {
-        initPeerNode(port);
+    public PeerNode(int port) {
+        this.initPort = port;
+        this.peerNodeListenerManager = new PeerNodeListenerManager();
     }
 
-    private void initPeerNode(int initPort) {
-        peerNodeListenerManager = new PeerNodeListenerManager();
+    public synchronized void start() {
+        if (running) return;
+        running = true;
+
         new Thread(() -> {
             try {
                 listenForPeers(initPort);
@@ -44,9 +46,14 @@ public class PeerNode {
         }).start();
     }
 
+    private void ensureRunning() {
+        if (!running) {
+            throw new IllegalStateException("PeerNode is not running. Call start() first.");
+        }
+    }
 
     public void stop() {
-        this.running = false;
+        running = false;
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
@@ -83,6 +90,7 @@ public class PeerNode {
 
     // ACTING AS CLIENT
     public void connectToPeer(String ip, int peerPort) throws LanacPeerConnectionException {
+        ensureRunning();
         try {
             Socket socket = new Socket(ip, peerPort);
             peerConnections.add(socket);
@@ -134,10 +142,10 @@ public class PeerNode {
     }
 
     private void addToPendingBuffer(SignedAction action) {
+        ensureRunning();
         long tick = action.getInputData().tick();
 
-        //add to buffer
-        tickBuffer.computeIfAbsent(tick, k -> java.util.Collections.synchronizedList(new ArrayList<>()))
+        tickBuffer.computeIfAbsent(tick, k -> Collections.synchronizedList(new ArrayList<>()))
                 .add(action);
 
         tryProcessTick(currentProcessingTick);
@@ -170,15 +178,18 @@ public class PeerNode {
 
 
     public void broadcastAction(SignedAction action) {
+        ensureRunning();
         byte[] serializedAction = action.serialize();
-        for (Socket socket : peerConnections) {
-            try {
-                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                out.writeInt(serializedAction.length);
-                out.write(serializedAction);
-                out.flush();
-            } catch (IOException e) {
-                throw new RuntimeException("Disconnect", e);
+        synchronized (peerConnections) {
+            for (Socket socket : peerConnections) {
+                try {
+                    DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                    out.writeInt(serializedAction.length);
+                    out.write(serializedAction);
+                    out.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException("Disconnect", e);
+                }
             }
         }
     }

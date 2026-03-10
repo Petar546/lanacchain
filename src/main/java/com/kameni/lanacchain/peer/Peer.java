@@ -12,6 +12,7 @@ public class Peer {
     private PeerIdentity peerIdentity;
     private PeerNode peerNode;
     private Lanac lanac = new Lanac();
+    private boolean isStarted = false;
 
     private PeerConnectionListener peerConnectionListener = new PeerConnectionListener() {
         @Override
@@ -45,11 +46,26 @@ public class Peer {
     public Peer() {
         peerIdentity = new PeerIdentity();
         peerNode = new PeerNode();
-        peerNode.addListener(peerConnectionListener);
     }
 
+    public void start() {
+        if (isStarted) return;
+        peerNode.start();
+        peerNode.addListener(peerConnectionListener);
+        isStarted = true;
+    }
+
+    /**
+     * Safety check helper
+     */
+    private void ensureStarted() {
+        if (!isStarted || peerNode == null) {
+            throw new IllegalStateException("Peer must be started via start() before performing operations.");
+        }
+    }
 
     protected List<SignedAction> sortActions(List<SignedAction> actionsToSort) {
+        ensureStarted();
         // 1. address 2. nonce
         List<SignedAction> sortedActions = actionsToSort.stream()
                 .sorted(Comparator.comparing(SignedAction::getPeerAddress)
@@ -66,7 +82,7 @@ public class Peer {
      * Interface for the Blockchain
      */
     public void commitToLocalChain(List<SignedAction> verifiedActions) {
-
+        ensureStarted();
         List<SignedAction> sortedActions = sortActions(verifiedActions);
         // Proceed with hashing and appending to the local blockchain
         sortedActions.forEach((a) -> {
@@ -83,6 +99,7 @@ public class Peer {
     }
 
     protected void connectToPeer(String ip, int port)  {
+        ensureStarted();
         try {
             peerNode.connectToPeer(ip, port);
 

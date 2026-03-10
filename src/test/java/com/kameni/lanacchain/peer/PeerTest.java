@@ -8,6 +8,8 @@ import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.annotations.TestClass;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
 
@@ -34,7 +36,7 @@ public class PeerTest {
     public void test__DeterministicSorting() throws Exception {
         setUp();
         Peer peer = new Peer();
-
+        peer.start();
         // Add actions to verify the sorting logic inside PeerNode
         List<SignedAction> unsorted = List.of(actionA, actionB);
         List<SignedAction> sorted = peer.sortActions(unsorted);
@@ -47,9 +49,10 @@ public class PeerTest {
     }
 
     @Test
-    public void test__commitToLocalChain(){
+    public void test__commitToLocalChain() throws Exception{
+        setUp();
         Peer peer = new Peer();
-
+        peer.start();
         // Add actions to verify the sorting logic inside PeerNode
         List<SignedAction> unsorted = List.of(actionA, actionB);
 
@@ -73,26 +76,64 @@ public class PeerTest {
     }
 
     @Test
-    public void test__peerConnectAndShareData(){
+    public void test__peerConnectAndShareData() throws Exception{
+
+        CountDownLatch portsFoundLatch = new CountDownLatch(2);
+        PeerConnectionListener p1Listener = new PeerConnectionListener() {
+            @Override
+            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {
+
+            }
+
+            @Override
+            public int onPortChosen(int port) {
+                portsFoundLatch.countDown();
+                IO.println("p1Listener port found");
+                return PeerConnectionListener.super.onPortChosen(port);
+            }
+        };
+        PeerConnectionListener p2Listener = new PeerConnectionListener() {
+            @Override
+            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {
+
+            }
+
+            @Override
+            public int onPortChosen(int port) {
+                portsFoundLatch.countDown();
+                IO.println("p2Listener port found");
+                return PeerConnectionListener.super.onPortChosen(port);
+            }
+        };
+
         Peer peer1 = new Peer();
+        peer1.getPeerNode().addListener(p1Listener);
+
         Peer peer2 = new Peer();
+        peer2.getPeerNode().addListener(p2Listener);
 
-        PeerNode peerNode1 = peer1.getPeerNode();
-        int peerNode1port = peerNode1.getPort();
+        peer1.start();
+        peer2.start();
 
-        PeerNode peerNode2 = peer2.getPeerNode();
-        int peerNode2port = peerNode2.getPort();
+//        PeerNode peerNode2 = peer2.getPeerNode();
+//        peerNode2.addListener(p2Listener);
+//        PeerNode peerNode1 = peer1.getPeerNode();
+//        peerNode1.addListener(p1Listener);
+
+        assertTrue(portsFoundLatch.await(4, TimeUnit.SECONDS), "Ports havent been assigned");
+
+        int peerNode1port = peer1.getPeerNode().getPort();
+        int peerNode2port = peer2.getPeerNode().getPort();
 
 
         // wait for the port to be assigned
         peer1.connectToPeer("127.0.0.1", peerNode2port);
         peer2.connectToPeer("127.0.0.1", peerNode1port);
-        peerNode1.broadcastAction(actionA);
-        peerNode2.broadcastAction(actionB);
+        peer1.getPeerNode().broadcastAction(actionA);
+        peer2.getPeerNode().broadcastAction(actionB);
 
         Lanac lanac1 = peer1.getLanac();
         Lanac lanac2 = peer2.getLanac();
-
 
         for (int i = 0; i < lanac1.getBlockchainSize(); i++) {
             String blockDisplay = String.format("Block[%d] Hash: %s | Prev: %s",
@@ -108,7 +149,6 @@ public class PeerTest {
 
         assertTrue(lanac1.getBlockchainSize() == 2, "Blockchain size doesnt match");
         assertTrue(lanac2.getBlockchainSize() == 2, "Blockchain size doesnt match");
-
 
 
     }

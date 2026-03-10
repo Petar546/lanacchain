@@ -86,8 +86,12 @@ public class PeerNodeTest {
 
         PeerNode node1asServer = new PeerNode();
         node1asServer.addListener(myListener1asServer);
+
         PeerNode node2asJoinee = new PeerNode();
         node2asJoinee.addListener(myListener2asJoinee);
+
+        node1asServer.start();
+        node2asJoinee.start();
 
         try {
             // Wait for server to actually bind to a port

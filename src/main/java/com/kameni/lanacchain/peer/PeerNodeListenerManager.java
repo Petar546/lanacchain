@@ -27,14 +27,4 @@ public class PeerNodeListenerManager {
             method.accept(listener, arguments);
         }
     }
-
-
-    // Clean, method-reference based notifications:
-    private void notifyPeerJoined(Socket socket) {
-        notifyAll(PeerConnectionListener::onPeerJoined, socket);
-    }
-
-    private void notifyCommit(List<SignedAction> actions) {
-        notifyAll(PeerConnectionListener::onCommitToLocalChain, actions);
-    }
 }
