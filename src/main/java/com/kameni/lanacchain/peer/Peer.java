@@ -1,5 +1,6 @@
 package com.kameni.lanacchain.peer;
 
+import com.kameni.lanacchain.exceptions.LanacPeerConnectionException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 
@@ -76,4 +77,17 @@ public class Peer {
         return lanac;
     }
 
+    protected PeerNode getPeerNode() {
+        return peerNode;
+    }
+
+    protected void connectToPeer(String ip, int port)  {
+        try {
+            peerNode.connectToPeer(ip, port);
+
+        } catch (LanacPeerConnectionException e) {
+            IO.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

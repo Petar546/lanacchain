@@ -52,7 +52,6 @@ public class PeerTest {
 
         // Add actions to verify the sorting logic inside PeerNode
         List<SignedAction> unsorted = List.of(actionA, actionB);
-        List<SignedAction> sorted = peer.sortActions(unsorted);
 
         peer.commitToLocalChain(unsorted);
         Lanac lanac = peer.getLanac();
@@ -73,5 +72,44 @@ public class PeerTest {
 
     }
 
+    @Test
+    public void test__peerConnectAndShareData(){
+        Peer peer1 = new Peer();
+        Peer peer2 = new Peer();
 
+        PeerNode peerNode1 = peer1.getPeerNode();
+        int peerNode1port = peerNode1.getPort();
+
+        PeerNode peerNode2 = peer2.getPeerNode();
+        int peerNode2port = peerNode2.getPort();
+
+
+        // wait for the port to be assigned
+        peer1.connectToPeer("127.0.0.1", peerNode2port);
+        peer2.connectToPeer("127.0.0.1", peerNode1port);
+        peerNode1.broadcastAction(actionA);
+        peerNode2.broadcastAction(actionB);
+
+        Lanac lanac1 = peer1.getLanac();
+        Lanac lanac2 = peer2.getLanac();
+
+
+        for (int i = 0; i < lanac1.getBlockchainSize(); i++) {
+            String blockDisplay = String.format("Block[%d] Hash: %s | Prev: %s",
+                    i,
+                    lanac1.getBlockAtIndex(i).getHash(),
+                    lanac1.getBlockAtIndex(i).getPreviousHash()
+            );
+
+            IO.println(blockDisplay);
+        }
+        assertTrue(lanac1.isChainValid(), "Chain isnt valid");
+        assertTrue(lanac2.isChainValid(), "Chain isnt valid");
+
+        assertTrue(lanac1.getBlockchainSize() == 2, "Blockchain size doesnt match");
+        assertTrue(lanac2.getBlockchainSize() == 2, "Blockchain size doesnt match");
+
+
+
+    }
 }

@@ -14,9 +14,15 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerNode {
-
+    private enum PeerNodeNotification{
+        PEER_JOINED,
+        CONNECTED_TO_PEER,
+        PEER_DISCONNECTED,
+        PORT_CHOSEN,
+        COMMIT_TO_LOCAL_CHAIN
+    }
     public final List<Socket> peerConnections = Collections.synchronizedList(new ArrayList<>());
-    private PeerConnectionListener listener;
+    private List<PeerConnectionListener> listeners;
     private int port;
     private ServerSocket serverSocket;
     private volatile boolean running = true;
@@ -26,20 +32,14 @@ public class PeerNode {
 
     public PeerNode() {
         int autoAllocatePort = 0;
-        initPeerNode(autoAllocatePort, null);
+        initPeerNode(autoAllocatePort);
     }
 
-    public PeerNode(PeerConnectionListener listener) {
-        int autoAllocatePort = 0;
-        initPeerNode(autoAllocatePort, listener);
+    protected PeerNode(int port) {
+        initPeerNode(port);
     }
 
-    protected PeerNode(int port, PeerConnectionListener listener) {
-        initPeerNode(port, listener);
-    }
-
-    private void initPeerNode(int initPort, PeerConnectionListener listener) {
-        this.listener = listener;
+    private void initPeerNode(int initPort) {
         new Thread(() -> {
             try {
                 listenForPeers(initPort);
@@ -123,9 +123,6 @@ public class PeerNode {
         }
     }
 
-    public Optional<PeerConnectionListener> getListener() {
-        return Optional.ofNullable(listener);
-    }
 
     public int getPort() {
         return port;
@@ -187,5 +184,10 @@ public class PeerNode {
                 throw new RuntimeException("Disconnect", e);
             }
         }
+    }
+
+
+    private void notifySubscribers(PeerNodeNotification notification){
+
     }
 }
