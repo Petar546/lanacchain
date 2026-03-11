@@ -80,11 +80,7 @@ public class PeerNodeTest {
             }
         };
 
-        PeerNodeCommitListener ignoredCommitListener = new PeerNodeCommitListener() {
-            @Override
-            public void onTryProcessTick(List<SignedAction> actionsToCommitToLocalChain) {
-            }
-        };
+        PeerNodeCommitListener ignoredCommitListener = actionsToCommitToLocalChain -> {};
         PeerNode node1asServer = PeerNode.Builder
                 .withCommitListener(ignoredCommitListener)
                 .addConnectionListener(myListener1asServer)
@@ -139,11 +135,7 @@ public class PeerNodeTest {
                 System.out.println("P1 Peer Left: " + s.getRemoteSocketAddress());
             }
         };
-        PeerNodeCommitListener ignoredCommitListener = new PeerNodeCommitListener() {
-            @Override
-            public void onTryProcessTick(List<SignedAction> actionsToCommitToLocalChain) {
-            }
-        };
+        PeerNodeCommitListener ignoredCommitListener = actionsToCommitToLocalChain -> {};
 
         PeerNode node = PeerNode.Builder
                 .withCommitListener(ignoredCommitListener)
