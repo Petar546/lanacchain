@@ -4,6 +4,9 @@ import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacPeerConnectionException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
+import com.kameni.lanacchain.peer.listeners.PeerNodeCommitListener;
+import com.kameni.lanacchain.peer.listeners.PeerNodeConnectionListener;
+import com.kameni.lanacchain.peer.listeners.PeerNodeListener;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -77,12 +80,12 @@ public class PeerNode {
             this.serverSocket = new ServerSocket(listenPort);
             this.port = serverSocket.getLocalPort();
 
-            peerNodeListenerManager.notifyAll(PeerConnectionListener::onPortChosen, this.port);
+            peerNodeListenerManager.notifyAllConnectionListeners(PeerNodeConnectionListener::onPortChosen, this.port);
 
             while (running) {
                 Socket socket = serverSocket.accept();
                 peerConnections.add(socket);
-                peerNodeListenerManager.notifyAll(PeerConnectionListener::onPeerJoined, socket);
+                peerNodeListenerManager.notifyAllConnectionListeners(PeerNodeConnectionListener::onPeerJoined, socket);
                 new Thread(() -> handlePeer(socket)).start();
             }
         } catch (IOException e) {
@@ -96,7 +99,7 @@ public class PeerNode {
         try {
             Socket socket = new Socket(ip, peerPort);
             peerConnections.add(socket);
-            peerNodeListenerManager.notifyAll(PeerConnectionListener::onConnectedToPeer, socket);
+            peerNodeListenerManager.notifyAllConnectionListeners(PeerNodeConnectionListener::onConnectedToPeer, socket);
             new Thread(() -> handlePeer(socket)).start();
         } catch (IOException e) {
             throw new LanacPeerConnectionException(e);
@@ -120,7 +123,7 @@ public class PeerNode {
         } catch (IOException e) {
             if (running) {
                 peerConnections.remove(socket);
-                peerNodeListenerManager.notifyAll(PeerConnectionListener::onPeerDisconnected, socket);
+                peerNodeListenerManager.notifyAllConnectionListeners(PeerNodeConnectionListener::onPeerDisconnected, socket);
 
             }
         } catch (LanacDeserializationException e) {
@@ -165,8 +168,8 @@ public class PeerNode {
         List<SignedAction> actionsThisTick = tickBuffer.get(tick);
 
         if (isTickComplete(tick)) {
-            if (peerNodeListenerManager.hasListeners()) {
-                peerNodeListenerManager.notifyAll(PeerConnectionListener::onCommitToLocalChain, actionsThisTick);
+            if (peerNodeListenerManager.hasCommitListeners()) {
+                peerNodeListenerManager.notifyAllCommitListeners(PeerNodeCommitListener::onCommitToLocalChain, actionsThisTick);
 
             } else {
                 throw new RuntimeException("Cant commit To Local Chain because no listener is present");
@@ -196,11 +199,11 @@ public class PeerNode {
         }
     }
 
-    public void addListener(PeerConnectionListener listener) {
+    public void addListener(PeerNodeConnectionListener listener) {
         peerNodeListenerManager.addListener(listener);
     }
 
-    public void removeListener(PeerConnectionListener listener) {
+    public void removeListener(PeerNodeConnectionListener listener) {
         peerNodeListenerManager.removeListener(listener);
     }
 }

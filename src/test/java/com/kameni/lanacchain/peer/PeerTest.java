@@ -4,6 +4,7 @@ import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
+import com.kameni.lanacchain.peer.listeners.PeerNodeConnectionListener;
 import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.annotations.TestClass;
 
@@ -79,30 +80,21 @@ public class PeerTest {
     public void test__peerConnectAndShareData() throws Exception{
 
         CountDownLatch portsFoundLatch = new CountDownLatch(2);
-        PeerConnectionListener p1Listener = new PeerConnectionListener() {
-            @Override
-            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {
-
-            }
-
+        PeerNodeConnectionListener p1Listener = new PeerNodeConnectionListener() {
             @Override
             public int onPortChosen(int port) {
                 portsFoundLatch.countDown();
                 IO.println("p1Listener port found");
-                return PeerConnectionListener.super.onPortChosen(port);
+                return PeerNodeConnectionListener.super.onPortChosen(port);
             }
         };
-        PeerConnectionListener p2Listener = new PeerConnectionListener() {
-            @Override
-            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {
-
-            }
+        PeerNodeConnectionListener p2Listener = new PeerNodeConnectionListener() {
 
             @Override
             public int onPortChosen(int port) {
                 portsFoundLatch.countDown();
                 IO.println("p2Listener port found");
-                return PeerConnectionListener.super.onPortChosen(port);
+                return PeerNodeConnectionListener.super.onPortChosen(port);
             }
         };
 

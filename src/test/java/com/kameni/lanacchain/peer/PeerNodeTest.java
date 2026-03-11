@@ -4,6 +4,7 @@ import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
+import com.kameni.lanacchain.peer.listeners.PeerNodeConnectionListener;
 import com.kameni.lanacchain.testrunner.LanacTestUtils;
 import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.annotations.TestClass;
@@ -59,7 +60,7 @@ public class PeerNodeTest {
         CountDownLatch peerJoinedLatch = new CountDownLatch(2);
         CountDownLatch node1Ready = new CountDownLatch(1);
 
-        PeerConnectionListener myListener1asServer = new PeerConnectionListener() {
+        PeerNodeConnectionListener myListener1asServer = new PeerNodeConnectionListener() {
             @Override
             public void onPeerJoined(Socket s) {
                 peerJoinedLatch.countDown();
@@ -69,19 +70,13 @@ public class PeerNodeTest {
                 node1Ready.countDown();
                 return port;
             }
-
-            @Override
-            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {}
         };
 
-        PeerConnectionListener myListener2asJoinee = new PeerConnectionListener() {
+        PeerNodeConnectionListener myListener2asJoinee = new PeerNodeConnectionListener() {
             @Override
             public void onConnectedToPeer(Socket s) {
                 peerJoinedLatch.countDown();
             }
-
-            @Override
-            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {}
         };
 
         PeerNode node1asServer = PeerNode.createAndStart();
@@ -122,7 +117,7 @@ public class PeerNodeTest {
     @Test
     public void test__tamperedSignatureRejection() throws Exception {
         setUp();
-        PeerConnectionListener myListener = new PeerConnectionListener() {
+        PeerNodeConnectionListener myListener = new PeerNodeConnectionListener() {
             @Override
             public void onPeerJoined(Socket s) { System.out.println("P1 New Inbound: " + s.getPort()); }
 
@@ -133,9 +128,6 @@ public class PeerNodeTest {
             public void onPeerDisconnected(Socket s) {
                 System.out.println("P1 Peer Left: " + s.getRemoteSocketAddress());
             }
-
-            @Override
-            public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {}
         };
         PeerNode node = PeerNode.createAndStart(45003);
         node.addListener(myListener);

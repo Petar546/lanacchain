@@ -3,6 +3,8 @@ package com.kameni.lanacchain.peer;
 import com.kameni.lanacchain.exceptions.LanacPeerConnectionException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
+import com.kameni.lanacchain.peer.listeners.PeerNodeCommitListener;
+import com.kameni.lanacchain.peer.listeners.PeerNodeConnectionListener;
 
 import java.net.Socket;
 import java.util.Comparator;
@@ -14,11 +16,11 @@ public class Peer {
     private Lanac lanac = new Lanac();
     private boolean isStarted = false;
 
-    private PeerConnectionListener peerConnectionListener = new PeerConnectionListener() {
+    private PeerNodeConnectionListener peerNodeConnectionListener = new PeerNodeConnectionListener() {
         @Override
         public void onPeerJoined(Socket socket) {
             IO.println("Peer joined on Socket " + socket);
-            PeerConnectionListener.super.onPeerJoined(socket);
+            PeerNodeConnectionListener.super.onPeerJoined(socket);
         }
 
         @Override
@@ -37,10 +39,7 @@ public class Peer {
             return port;
         }
 
-        @Override
-        public void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain) {
-            commitToLocalChain(actionsToCommitToLocalChain);
-        }
+
     };
 
     public Peer() {
@@ -51,7 +50,7 @@ public class Peer {
     public void start() {
         if (isStarted) return;
         peerNode.createAndStart();
-        peerNode.addListener(peerConnectionListener);
+        peerNode.addListener(peerNodeConnectionListener);
         isStarted = true;
     }
 
