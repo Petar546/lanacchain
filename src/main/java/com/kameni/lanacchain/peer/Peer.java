@@ -13,7 +13,7 @@ import java.util.List;
 public class Peer {
     private PeerIdentity peerIdentity;
     private PeerNode peerNode;
-    private Lanac lanac = new Lanac();
+    private Lanac lanac;
     private boolean isStarted = false;
 
     private PeerNodeConnectionListener peerNodeConnectionListener = new PeerNodeConnectionListener() {
@@ -38,21 +38,20 @@ public class Peer {
             IO.println("Port " + port + " has been chosen by Peer");
             return port;
         }
-
-
     };
 
-    public Peer() {
-        peerIdentity = new PeerIdentity();
-        peerNode = PeerNode.createAndStart();
+    private final PeerNodeCommitListener commitListener = new PeerNodeCommitListener() {
+        @Override
+        public void onTryProcessTick(List<SignedAction> actionsToCommitToLocalChain) {
+            commitToLocalChain(actionsToCommitToLocalChain);
+        }
+    };
+
+    private Peer() {
+        this.peerIdentity = new PeerIdentity();
+        this.lanac = new Lanac();
     }
 
-    public void start() {
-        if (isStarted) return;
-        peerNode.createAndStart();
-        peerNode.addListener(peerNodeConnectionListener);
-        isStarted = true;
-    }
 
     /**
      * Safety check helper
@@ -107,4 +106,36 @@ public class Peer {
             e.printStackTrace();
         }
     }
+
+
+    public static class Builder {
+        private PeerNodeConnectionListener customConnectionListener;
+
+        public Builder() {}
+
+        public Builder customConnectionListener(PeerNodeConnectionListener listener) {
+            this.customConnectionListener = listener;
+            return this;
+        }
+
+        public Peer buildAndStart() {
+            Peer peer = new Peer();
+            if (this.customConnectionListener != null) {
+                peer.peerNodeConnectionListener = this.customConnectionListener;
+            }
+
+            if (peer.isStarted){
+                throw new IllegalStateException("Peer already started");
+            };
+
+            peer.peerNode = PeerNode.Builder
+                    .withCommitListener(peer.commitListener)
+                    .addConnectionListener(peer.peerNodeConnectionListener)
+                    .buildAndStart();
+
+            peer.isStarted = true;
+            return peer;
+        }
+    }
+
 }

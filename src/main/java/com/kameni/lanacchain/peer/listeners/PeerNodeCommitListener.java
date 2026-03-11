@@ -6,5 +6,9 @@ import java.util.List;
 
 public interface PeerNodeCommitListener extends PeerNodeListener {
 
-    void onCommitToLocalChain(List<SignedAction> actionsToCommitToLocalChain);
+    /**
+     *  Listener call for commitToLocalChain for Peer
+     * @param actionsToCommitToLocalChain
+     */
+    void onTryProcessTick(List<SignedAction> actionsToCommitToLocalChain);
 }

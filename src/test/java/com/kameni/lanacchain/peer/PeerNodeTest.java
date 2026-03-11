@@ -4,6 +4,7 @@ import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
+import com.kameni.lanacchain.peer.listeners.PeerNodeCommitListener;
 import com.kameni.lanacchain.peer.listeners.PeerNodeConnectionListener;
 import com.kameni.lanacchain.testrunner.LanacTestUtils;
 import com.kameni.lanacchain.testrunner.annotations.Test;
@@ -79,11 +80,20 @@ public class PeerNodeTest {
             }
         };
 
-        PeerNode node1asServer = PeerNode.createAndStart();
-        node1asServer.addListener(myListener1asServer);
+        PeerNodeCommitListener ignoredCommitListener = new PeerNodeCommitListener() {
+            @Override
+            public void onTryProcessTick(List<SignedAction> actionsToCommitToLocalChain) {
+            }
+        };
+        PeerNode node1asServer = PeerNode.Builder
+                .withCommitListener(ignoredCommitListener)
+                .addConnectionListener(myListener1asServer)
+                .buildAndStart();
 
-        PeerNode node2asJoinee = PeerNode.createAndStart();
-        node2asJoinee.addListener(myListener2asJoinee);
+        PeerNode node2asJoinee = PeerNode.Builder
+                .withCommitListener(ignoredCommitListener)
+                .addConnectionListener(myListener2asJoinee)
+                .buildAndStart();
 
         try {
             // Wait for server to actually bind to a port
@@ -129,7 +139,17 @@ public class PeerNodeTest {
                 System.out.println("P1 Peer Left: " + s.getRemoteSocketAddress());
             }
         };
-        PeerNode node = PeerNode.createAndStart(45003);
+        PeerNodeCommitListener ignoredCommitListener = new PeerNodeCommitListener() {
+            @Override
+            public void onTryProcessTick(List<SignedAction> actionsToCommitToLocalChain) {
+            }
+        };
+
+        PeerNode node = PeerNode.Builder
+                .withCommitListener(ignoredCommitListener)
+                .addConnectionListener(myListener)
+                .setPort(45003)
+                .buildAndStart();
         node.addListener(myListener);
         byte[] fakeSignature = new byte[]{ 0x13, 0x37, 0x00 };
         SignedAction maliciousAction = LanacTestUtils.createTamperedAction(actionA.getInputData(), actionA.getPeerAddress(), fakeSignature);

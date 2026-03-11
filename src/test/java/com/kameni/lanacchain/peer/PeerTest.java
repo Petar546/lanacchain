@@ -36,8 +36,7 @@ public class PeerTest {
     @Test
     public void test__DeterministicSorting() throws Exception {
         setUp();
-        Peer peer = new Peer();
-        peer.start();
+        Peer peer = new Peer.Builder().buildAndStart();
         // Add actions to verify the sorting logic inside PeerNode
         List<SignedAction> unsorted = List.of(actionA, actionB);
         List<SignedAction> sorted = peer.sortActions(unsorted);
@@ -52,8 +51,7 @@ public class PeerTest {
     @Test
     public void test__commitToLocalChain() throws Exception{
         setUp();
-        Peer peer = new Peer();
-        peer.start();
+        Peer peer = new Peer.Builder().buildAndStart();
         // Add actions to verify the sorting logic inside PeerNode
         List<SignedAction> unsorted = List.of(actionA, actionB);
 
@@ -98,19 +96,14 @@ public class PeerTest {
             }
         };
 
-        Peer peer1 = new Peer();
-        peer1.getPeerNode().addListener(p1Listener);
+        Peer peer1 = new Peer.Builder()
+                .customConnectionListener(p1Listener)
+                .buildAndStart();
 
-        Peer peer2 = new Peer();
-        peer2.getPeerNode().addListener(p2Listener);
 
-        peer1.start();
-        peer2.start();
-
-//        PeerNode peerNode2 = peer2.getPeerNode();
-//        peerNode2.addListener(p2Listener);
-//        PeerNode peerNode1 = peer1.getPeerNode();
-//        peerNode1.addListener(p1Listener);
+        Peer peer2 = new Peer.Builder()
+                .customConnectionListener(p2Listener)
+                .buildAndStart();
 
         assertTrue(portsFoundLatch.await(4, TimeUnit.SECONDS), "Ports havent been assigned");
 

@@ -32,25 +32,6 @@ public class PeerNode {
         this.peerNodeListenerManager = new PeerNodeListenerManager();
     }
 
-    public static PeerNode createAndStart() {
-        return createAndStart(0);
-    }
-
-    public static PeerNode createAndStart(int port) {
-        PeerNode p = new PeerNode(port);
-
-
-        new Thread(() -> {
-            try {
-                p.listenForPeers(port);
-            } catch (LanacPeerConnectionException e) {
-                System.err.println("Server Error: " + e.getMessage());
-            }
-        }).start();
-
-        return p;
-    }
-
     private void ensureRunning() {
         if (!running) {
             throw new IllegalStateException("PeerNode is not running. Call start() first.");
@@ -169,7 +150,7 @@ public class PeerNode {
 
         if (isTickComplete(tick)) {
             if (peerNodeListenerManager.hasCommitListeners()) {
-                peerNodeListenerManager.notifyAllCommitListeners(PeerNodeCommitListener::onCommitToLocalChain, actionsThisTick);
+                peerNodeListenerManager.notifyAllCommitListeners(PeerNodeCommitListener::onTryProcessTick, actionsThisTick);
 
             } else {
                 throw new RuntimeException("Cant commit To Local Chain because no listener is present");
@@ -199,11 +180,61 @@ public class PeerNode {
         }
     }
 
-    public void addListener(PeerNodeConnectionListener listener) {
+    public void addListener(PeerNodeListener listener) {
         peerNodeListenerManager.addListener(listener);
     }
 
-    public void removeListener(PeerNodeConnectionListener listener) {
+    public void removeListener(PeerNodeListener listener) {
         peerNodeListenerManager.removeListener(listener);
     }
+
+    public static class Builder {
+        private int port = 0;
+        private final PeerNodeCommitListener mandatoryCommitListener;
+        private final List<PeerNodeConnectionListener> connectionListeners = new ArrayList<>();
+
+        // Private constructor to force use of the static 'with' method
+        private Builder(PeerNodeCommitListener commitListener) {
+            this.mandatoryCommitListener = commitListener;
+        }
+
+        /**
+         * Entry point: The compiler forces you to provide a CommitListener here.
+         */
+        public static Builder withCommitListener(PeerNodeCommitListener listener) {
+            if (listener == null) throw new IllegalArgumentException("CommitListener is required");
+            return new Builder(listener);
+        }
+
+        public Builder setPort(int port) {
+            this.port = port;
+            return this;
+        }
+
+        public Builder addConnectionListener(PeerNodeConnectionListener listener) {
+            if (listener != null) this.connectionListeners.add(listener);
+            return this;
+        }
+
+        public PeerNode buildAndStart() {
+            PeerNode node = new PeerNode(this.port);
+            node.addListener(this.mandatoryCommitListener);
+
+            for (PeerNodeConnectionListener cl : connectionListeners) {
+                node.addListener(cl);
+            }
+
+            node.running = true;
+            new Thread(() -> {
+                try {
+                    node.listenForPeers(node.initPort);
+                } catch (LanacPeerConnectionException e) {
+                    System.err.println("PeerNode Startup Error: " + e.getMessage());
+                }
+            }).start();
+
+            return node;
+        }
+    }
+
 }
