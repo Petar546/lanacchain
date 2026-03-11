@@ -24,26 +24,28 @@ public class PeerNode {
     private long currentProcessingTick = 0;
     private final int initPort;
 
-    public PeerNode() {
-        this(0);
-    }
-
-    public PeerNode(int port) {
+    private PeerNode(int port) {
         this.initPort = port;
         this.peerNodeListenerManager = new PeerNodeListenerManager();
     }
 
-    public synchronized void start() {
-        if (running) return;
-        running = true;
+    public static PeerNode createAndStart() {
+        return createAndStart(0);
+    }
+
+    public static PeerNode createAndStart(int port) {
+        PeerNode p = new PeerNode(port);
+
 
         new Thread(() -> {
             try {
-                listenForPeers(initPort);
+                p.listenForPeers(port);
             } catch (LanacPeerConnectionException e) {
-                if (running) System.err.println("Server Error: " + e.getMessage());
+                System.err.println("Server Error: " + e.getMessage());
             }
         }).start();
+
+        return p;
     }
 
     private void ensureRunning() {

@@ -45,12 +45,12 @@ public class Peer {
 
     public Peer() {
         peerIdentity = new PeerIdentity();
-        peerNode = new PeerNode();
+        peerNode = PeerNode.createAndStart();
     }
 
     public void start() {
         if (isStarted) return;
-        peerNode.start();
+        peerNode.createAndStart();
         peerNode.addListener(peerConnectionListener);
         isStarted = true;
     }
