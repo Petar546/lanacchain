@@ -1,4 +1,4 @@
-package com.kameni.lanacchain.peer.listeners;
+package com.kameni.lanacchain.peer.node.listeners;
 
 import com.kameni.lanacchain.lanac.data.SignedAction;
 

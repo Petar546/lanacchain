@@ -1,8 +1,8 @@
-package com.kameni.lanacchain.peer;
+package com.kameni.lanacchain.peer.node;
 
-import com.kameni.lanacchain.peer.listeners.PeerNodeCommitListener;
-import com.kameni.lanacchain.peer.listeners.PeerNodeConnectionListener;
-import com.kameni.lanacchain.peer.listeners.PeerNodeListener;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeCommitListener;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeListener;
 
 import java.util.ArrayList;
 import java.util.List;

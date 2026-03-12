@@ -1,4 +1,4 @@
-package com.kameni.lanacchain.peer.listeners;
+package com.kameni.lanacchain.peer.node.listeners;
 
 import java.net.Socket;
 

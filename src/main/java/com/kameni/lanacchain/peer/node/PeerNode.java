@@ -1,12 +1,12 @@
-package com.kameni.lanacchain.peer;
+package com.kameni.lanacchain.peer.node;
 
 import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacPeerConnectionException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
-import com.kameni.lanacchain.peer.listeners.PeerNodeCommitListener;
-import com.kameni.lanacchain.peer.listeners.PeerNodeConnectionListener;
-import com.kameni.lanacchain.peer.listeners.PeerNodeListener;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeCommitListener;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeListener;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

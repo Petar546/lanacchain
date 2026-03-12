@@ -3,8 +3,9 @@ package com.kameni.lanacchain.peer;
 import com.kameni.lanacchain.exceptions.LanacPeerConnectionException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
-import com.kameni.lanacchain.peer.listeners.PeerNodeCommitListener;
-import com.kameni.lanacchain.peer.listeners.PeerNodeConnectionListener;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeCommitListener;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
+import com.kameni.lanacchain.peer.node.PeerNode;
 
 import java.net.Socket;
 import java.util.Comparator;

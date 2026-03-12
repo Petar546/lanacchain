@@ -4,7 +4,7 @@ import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
-import com.kameni.lanacchain.peer.listeners.PeerNodeConnectionListener;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
 import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.annotations.TestClass;
 
