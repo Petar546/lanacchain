@@ -1,14 +1,13 @@
 package com.kameni.lanacchain.peer.node;
 
-import com.kameni.lanacchain.exceptions.LanacDeserializationException;
 import com.kameni.lanacchain.exceptions.LanacPeerConnectionException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
+import com.kameni.lanacchain.peer.NodeInputHandler;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeCommitListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeListener;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ClientNode {
+public class ClientNode implements NodeInputHandler {
     public final List<Socket> peerConnections = Collections.synchronizedList(new ArrayList<>());
     protected PeerNodeListenerManager peerNodeListenerManager;
     private volatile boolean running = false;
@@ -57,38 +56,21 @@ public class ClientNode {
             Socket socket = new Socket(ip, peerPort);
             peerConnections.add(socket);
             peerNodeListenerManager.notifyAllConnectionListeners(PeerNodeConnectionListener::onConnectedToPeer, socket);
-            new Thread(() -> handlePeer(socket)).start();
+
+            Runnable onException = () -> {
+                peerConnections.remove(socket);
+                peerNodeListenerManager.notifyAllConnectionListeners(PeerNodeConnectionListener::onPeerDisconnected, socket);
+
+            };
+            new Thread(() -> handlePeer(socket, this::addActionToPendingBuffer, onException)).start();
         } catch (IOException e) {
             throw new LanacPeerConnectionException(e);
         }
     }
 
-    //TODO: handle peer in a node interface as deafault
-    //TODO: ServerNode should process the data, create a block and append, Client node should just
-    // Handle incoming data as client
-    private void handlePeer(Socket socket) {
-        try (DataInputStream in = new DataInputStream(socket.getInputStream())) {
-            while (running && !socket.isClosed()) {
-                int length = in.readInt();
-                byte[] inputData = new byte[length];
-                in.readFully(inputData);
-
-                SignedAction action = SignedAction.deserialize(inputData);
-
-                if (verifyIncomingAction(action)) {
-                    addToPendingBuffer(action);
-                }
-            }
-        } catch (IOException e) {
-            if (running) {
-                peerConnections.remove(socket);
-                peerNodeListenerManager.notifyAllConnectionListeners(PeerNodeConnectionListener::onPeerDisconnected, socket);
-
-            }
-        } catch (LanacDeserializationException e) {
-            // remove peer if disconnects
-            System.err.println("Error during deserialization of data for Action");
-            throw new RuntimeException("Error during deserialization of data for Action", e);
+    private void addActionToPendingBuffer(SignedAction action){
+        if (verifyIncomingAction(action)) {
+            addToPendingBuffer(action);
         }
     }
 
