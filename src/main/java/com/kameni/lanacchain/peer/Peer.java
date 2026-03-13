@@ -3,9 +3,10 @@ package com.kameni.lanacchain.peer;
 import com.kameni.lanacchain.exceptions.LanacPeerConnectionException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
+import com.kameni.lanacchain.peer.node.ServerNode;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeCommitListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
-import com.kameni.lanacchain.peer.node.PeerNode;
+import com.kameni.lanacchain.peer.node.ClientNode;
 
 import java.net.Socket;
 import java.util.Comparator;
@@ -13,7 +14,8 @@ import java.util.List;
 
 public class Peer {
     private PeerIdentity peerIdentity;
-    private PeerNode peerNode;
+    private ClientNode clientNode;
+    private ServerNode serverNode;
     private Lanac lanac;
     private boolean isStarted = false;
 
@@ -58,7 +60,7 @@ public class Peer {
      * Safety check helper
      */
     private void ensureStarted() {
-        if (!isStarted || peerNode == null) {
+        if (!isStarted || clientNode == null) {
             throw new IllegalStateException("Peer must be started via start() before performing operations.");
         }
     }
@@ -93,14 +95,17 @@ public class Peer {
         return lanac;
     }
 
-    protected PeerNode getPeerNode() {
-        return peerNode;
+    protected ClientNode getClientNode() {
+        return clientNode;
     }
 
+    protected ServerNode getServerNode() {
+        return serverNode;
+    }
     protected void connectToPeer(String ip, int port)  {
         ensureStarted();
         try {
-            peerNode.connectToPeer(ip, port);
+            clientNode.connectToPeer(ip, port);
 
         } catch (LanacPeerConnectionException e) {
             IO.println(e.getMessage());
@@ -129,7 +134,12 @@ public class Peer {
                 throw new IllegalStateException("Peer already started");
             };
 
-            peer.peerNode = PeerNode.Builder
+            peer.clientNode = ClientNode.Builder
+                    .withCommitListener(peer.commitListener)
+                    .addConnectionListener(peer.peerNodeConnectionListener)
+                    .buildAndStart();
+
+            peer.serverNode = ServerNode.Builder
                     .withCommitListener(peer.commitListener)
                     .addConnectionListener(peer.peerNodeConnectionListener)
                     .buildAndStart();

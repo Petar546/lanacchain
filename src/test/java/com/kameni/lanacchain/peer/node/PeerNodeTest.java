@@ -82,12 +82,12 @@ public class PeerNodeTest {
         };
 
         PeerNodeCommitListener ignoredCommitListener = actionsToCommitToLocalChain -> {};
-        PeerNode node1asServer = PeerNode.Builder
+        ServerNode node1asServer = ServerNode.Builder
                 .withCommitListener(ignoredCommitListener)
                 .addConnectionListener(myListener1asServer)
                 .buildAndStart();
 
-        PeerNode node2asJoinee = PeerNode.Builder
+        ClientNode node2asJoinee = ClientNode.Builder
                 .withCommitListener(ignoredCommitListener)
                 .addConnectionListener(myListener2asJoinee)
                 .buildAndStart();
@@ -138,7 +138,7 @@ public class PeerNodeTest {
         };
         PeerNodeCommitListener ignoredCommitListener = actionsToCommitToLocalChain -> {};
 
-        PeerNode node = PeerNode.Builder
+        ClientNode node = ClientNode.Builder
                 .withCommitListener(ignoredCommitListener)
                 .addConnectionListener(myListener)
                 .setPort(45003)

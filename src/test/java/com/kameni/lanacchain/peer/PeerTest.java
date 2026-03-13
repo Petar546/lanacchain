@@ -107,15 +107,15 @@ public class PeerTest {
 
         assertTrue(portsFoundLatch.await(4, TimeUnit.SECONDS), "Ports havent been assigned");
 
-        int peerNode1port = peer1.getPeerNode().getPort();
-        int peerNode2port = peer2.getPeerNode().getPort();
+        int peerNode1port = peer1.getServerNode().getPort();
+        int peerNode2port = peer2.getServerNode().getPort();
 
 
         // wait for the port to be assigned
         peer1.connectToPeer("127.0.0.1", peerNode2port);
         peer2.connectToPeer("127.0.0.1", peerNode1port);
-        peer1.getPeerNode().broadcastAction(actionA);
-        peer2.getPeerNode().broadcastAction(actionB);
+        peer1.getClientNode().broadcastAction(actionA);
+        peer2.getClientNode().broadcastAction(actionB);
 
         Lanac lanac1 = peer1.getLanac();
         Lanac lanac2 = peer2.getLanac();
