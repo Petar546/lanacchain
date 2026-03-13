@@ -211,4 +211,9 @@ public class ServerNode implements NodeInputHandler {
         }
     }
 
+
+    @Override
+    public boolean isRunning() {
+        return running;
+    }
 }

@@ -143,6 +143,11 @@ public class ClientNode implements NodeInputHandler {
         peerNodeListenerManager.removeListener(listener);
     }
 
+    @Override
+    public boolean isRunning() {
+        return running;
+    }
+
     public static class Builder {
         private final PeerNodeCommitListener mandatoryCommitListener;
         private final List<PeerNodeConnectionListener> connectionListeners = new ArrayList<>();

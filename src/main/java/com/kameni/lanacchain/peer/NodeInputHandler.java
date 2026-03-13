@@ -9,13 +9,11 @@ import java.net.Socket;
 import java.util.function.Consumer;
 
 public interface NodeInputHandler {
-    public boolean running = false;
-    //TODO: handle peer in a node interface as deafault
     //TODO: ServerNode should process the data, create a block and append, Client node should just
     // Handle incoming data as client
     default void handlePeer(Socket socket, Consumer<SignedAction> verifyAndAddToBuffer, Runnable onException) {
         try (DataInputStream in = new DataInputStream(socket.getInputStream())) {
-            while (running && !socket.isClosed()) {
+            while (isRunning() && !socket.isClosed()) {
                 int length = in.readInt();
                 byte[] inputData = new byte[length];
                 in.readFully(inputData);
@@ -25,8 +23,8 @@ public interface NodeInputHandler {
 
             }
         } catch (IOException e) {
-            if (running) {
-
+            if (isRunning()) {
+                onException.run();
             }
         } catch (LanacDeserializationException e) {
             // remove peer if disconnects
@@ -34,5 +32,7 @@ public interface NodeInputHandler {
             throw new RuntimeException("Error during deserialization of data for Action", e);
         }
     }
+
+    boolean isRunning();
 
 }
