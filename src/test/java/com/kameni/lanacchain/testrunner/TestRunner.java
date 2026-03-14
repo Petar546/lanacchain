@@ -90,7 +90,8 @@ public class TestRunner {
                 if (!Objects.equals(m.getAnnotation(Test.class).name(), "")){
                     methodName = m.getAnnotation(Test.class).name();
                 }else{
-                    methodName = m.getName();
+                    methodName = m.getName().replace("test__", "");
+
                 }
                 String currentMethodName = testClassName + "." + methodName;
 
