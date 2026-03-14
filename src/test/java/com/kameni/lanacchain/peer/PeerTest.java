@@ -33,7 +33,7 @@ public class PeerTest {
         actionB = new SignedAction(sampleData, peerIdentity2);
     }
 
-    @Test
+    @Test(name = "DeterministicSorting")
     public void test__DeterministicSorting() throws Exception {
         setUp();
         Peer peer = new Peer.Builder().buildAndStart();

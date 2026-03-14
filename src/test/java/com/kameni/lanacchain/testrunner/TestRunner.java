@@ -86,7 +86,13 @@ public class TestRunner {
 
         for (Method m : methods) {
             if (m.isAnnotationPresent(Test.class)) {
-                String currentMethodName = testClassName + "." + m.getName();
+                String methodName;
+                if (!Objects.equals(m.getAnnotation(Test.class).name(), "")){
+                    methodName = m.getAnnotation(Test.class).name();
+                }else{
+                    methodName = m.getName();
+                }
+                String currentMethodName = testClassName + "." + methodName;
 
                 IO.print("------ Running ");
                 TestPrint.printColored(currentMethodName, Color.GREEN);
