@@ -6,7 +6,9 @@ public enum Color {
     GREEN("\u001B[32m"),
     YELLOW("\u001B[33m"),
     CYAN("\u001B[36m"),
-    BOLD_WHITE("\033[1;37m");
+    BOLD_WHITE("\033[1;37m"),
+    PINK("\033[38;5;206m"),
+    MAGENTA("\033[0;35m");
 
     private final String code;
 

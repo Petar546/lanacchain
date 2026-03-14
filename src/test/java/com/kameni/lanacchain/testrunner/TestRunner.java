@@ -19,7 +19,7 @@ public class TestRunner {
 
         TestResult overallResult = new TestResult();
         for (Object testInstance : testInstances){
-            IO.println("--- Test Class: " + testInstance.getClass().getSimpleName() + " ---");
+            TestPrint.printColoredln("--- Test Class: " + testInstance.getClass().getSimpleName() + " ---", Color.PINK);
 
             TestResult currentTestTestResult = runMethodsOfInstance(testInstance);
             overallResult.add(currentTestTestResult);
@@ -96,7 +96,7 @@ public class TestRunner {
                 String currentMethodName = testClassName + "." + methodName;
 
                 IO.print("------ Running ");
-                TestPrint.printColored(currentMethodName, Color.GREEN);
+                TestPrint.printColored(currentMethodName, Color.MAGENTA);
                 IO.println("... ------");
 
                 long timerStartTime = System.nanoTime();
@@ -105,8 +105,6 @@ public class TestRunner {
                     m.invoke(testInstance);
 
                     long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
-
-                    TestPrint.printColoredln(currentMethodName + " PASSED", Color.GREEN);
 
                     testResult.addResult(currentMethodName, fileName, 1, testDuration, true, null);
 
@@ -124,14 +122,17 @@ public class TestRunner {
 
                     boolean isPassed = (cause instanceof TestPassedSignal);
 
+                    IO.print("------ Finished ");
+
                     if (isPassed) {
-                        TestPrint.printColoredln(currentMethodName + " PASSED", Color.GREEN);
+                        TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
                         testResult.addResult(currentMethodName, fileName, lineNumber, duration, true, null);
                     } else {
-                        TestPrint.printColoredln(currentMethodName + " FAILED", Color.RED);
+                        TestPrint.printColored(currentMethodName + " FAILED", Color.RED);
                         cause.printStackTrace();
                         testResult.addResult(currentMethodName, fileName, lineNumber, duration, false, cause);
                     }
+                    IO.println(" ------");
                 }
             }
         }
