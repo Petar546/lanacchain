@@ -27,19 +27,18 @@ public class TestRunner {
         }
 
 
-        printResult(overallResult);
+        printResultTable(overallResult);
 
         if (!overallResult.getFailed().isEmpty()){
             System.exit(1);
-        }
-        else {
+        }else {
             System.exit(0);
         }
     }
 
 
 
-    private static void printResult(TestResult overallResult) {
+    private static void printResultTable(TestResult overallResult) {
         int maxLinkLength = overallResult.results.stream()
                 .mapToInt(r -> (r.methodName() + "(" + r.fileName() + ":" + r.lineNumber() + ")").length())
                 .max()
@@ -86,48 +85,44 @@ public class TestRunner {
         TestResult testResult = new TestResult();
 
         for (Method m : methods) {
-            if (m.isAnnotationPresent(Test.class)) {
-                String currentMethodName = testClassName + "." + getTestMethodName(m);
+            //skip non test methods
+            if (!m.isAnnotationPresent(Test.class)) continue;
 
-                IO.print("------ Running ");
-                TestPrint.printColored(currentMethodName, Color.MAGENTA);
-                IO.println("... ------");
+            String currentMethodName = testClassName + "." + getTestMethodName(m);
 
-                long timerStartTime = System.nanoTime();
+            IO.print("------ Running ");
+            TestPrint.printColored(currentMethodName, Color.MAGENTA);
+            IO.println("... ------");
 
-                try {
-                    m.invoke(testInstance);
+            long timerStartTime = System.nanoTime();
 
-                    long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
+            try {
+                m.invoke(testInstance);
+            } catch (Exception e) {
 
-                    testResult.addResult(currentMethodName, fileName, 1, testDuration, true, null);
+                long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
+                Throwable cause = (e instanceof InvocationTargetException) ? e.getCause() : e;
 
-                } catch (Exception e) {
-                    long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
-                    Throwable cause = (e instanceof InvocationTargetException) ? e.getCause() : e;
-
-                    int lineNumber = 1;
-                    for (StackTraceElement element : cause.getStackTrace()) {
-                        if (element.getClassName().contains(testClassName) && element.getMethodName().equals(m.getName())) {
-                            lineNumber = element.getLineNumber();
-                            break;
-                        }
+                int lineNumber = 1;
+                for (StackTraceElement element : cause.getStackTrace()) {
+                    if (element.getClassName().contains(testClassName) && element.getMethodName().equals(m.getName())) {
+                        lineNumber = element.getLineNumber();
+                        break;
                     }
-
-                    boolean isPassed = (cause instanceof TestPassedSignal);
-
-                    IO.print("------ Finished ");
-
-                    if (isPassed) {
-                        TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
-                        testResult.addResult(currentMethodName, fileName, lineNumber, duration, true, null);
-                    } else {
-                        TestPrint.printColored(currentMethodName + " FAILED", Color.RED);
-                        cause.printStackTrace();
-                        testResult.addResult(currentMethodName, fileName, lineNumber, duration, false, cause);
-                    }
-                    IO.println(" ------");
                 }
+
+                boolean isPassed = (cause instanceof TestPassedSignal);
+
+                IO.print("------ Finished ");
+                if (isPassed) {
+                    TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
+                    testResult.addResult(currentMethodName, fileName, lineNumber, testDuration, true, null);
+                } else {
+                    TestPrint.printColored(currentMethodName + " FAILED", Color.RED);
+                    cause.printStackTrace();
+                    testResult.addResult(currentMethodName, fileName, lineNumber, testDuration, false, cause);
+                }
+                IO.println(" ------");
             }
         }
         return testResult;
