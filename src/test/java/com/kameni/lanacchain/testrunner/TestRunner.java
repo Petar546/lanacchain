@@ -59,7 +59,7 @@ public class TestRunner {
 
             String clickableLink = String.format("%s(%s:%d)", data.methodName(), data.fileName(), data.lineNumber());
 
-            IO.print(String.format(rowFormat, clickableLink, data.durationMs()));
+            TestPrint.printColored(String.format(rowFormat, clickableLink, data.durationMs()), statusColor);
             TestPrint.printColoredln(status, statusColor);
         }
 
