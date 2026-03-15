@@ -5,6 +5,7 @@ import com.kameni.lanacchain.testrunner.display.Color;
 import com.kameni.lanacchain.testrunner.display.TestPrint;
 import com.kameni.lanacchain.testrunner.exceptions.TestPassedSignal;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -86,14 +87,7 @@ public class TestRunner {
 
         for (Method m : methods) {
             if (m.isAnnotationPresent(Test.class)) {
-                String methodName;
-                if (!Objects.equals(m.getAnnotation(Test.class).name(), "")){
-                    methodName = m.getAnnotation(Test.class).name();
-                }else{
-                    methodName = m.getName().replace("test__", "");
-
-                }
-                String currentMethodName = testClassName + "." + methodName;
+                String currentMethodName = testClassName + "." + getTestMethodName(m);
 
                 IO.print("------ Running ");
                 TestPrint.printColored(currentMethodName, Color.MAGENTA);
@@ -110,7 +104,7 @@ public class TestRunner {
 
                 } catch (Exception e) {
                     long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
-                    Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
+                    Throwable cause = (e instanceof InvocationTargetException) ? e.getCause() : e;
 
                     int lineNumber = 1;
                     for (StackTraceElement element : cause.getStackTrace()) {
@@ -137,6 +131,16 @@ public class TestRunner {
             }
         }
         return testResult;
+    }
+
+    private static String getTestMethodName(Method m) {
+        String methodName;
+        if (!Objects.equals(m.getAnnotation(Test.class).name(), "")){
+            methodName = m.getAnnotation(Test.class).name();
+        }else{
+            methodName = m.getName().replace("test__", "");
+        }
+        return methodName;
     }
 
 }
