@@ -1,4 +1,4 @@
-package com.kameni.lanacchain.peer.node;
+package com.kameni.lanacchain.managers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ public class ListenerManager<L> {
         return !listeners.isEmpty();
     }
 
-    protected <T> void notifyAll(BiConsumer<L, T> method, T arguments) {
+    public  <T> void notifyAll(BiConsumer<L, T> method, T arguments) {
         for (L listener : listeners) {
             method.accept(listener, arguments);
         }
