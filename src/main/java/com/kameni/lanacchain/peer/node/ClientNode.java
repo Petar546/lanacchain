@@ -3,11 +3,10 @@ package com.kameni.lanacchain.peer.node;
 import com.kameni.lanacchain.exceptions.LanacPeerConnectionException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
-import com.kameni.lanacchain.managers.ListenerManager;
+import com.kameni.lanacchain.managers.PeerNodeListenerManager;
 import com.kameni.lanacchain.peer.NodeInputHandler;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeCommitListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
-import com.kameni.lanacchain.peer.node.listeners.PeerNodeListener;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -20,14 +19,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientNode implements NodeInputHandler {
     public final List<Socket> peerConnections = Collections.synchronizedList(new ArrayList<>());
-    protected ListenerManager listenerManager;
+    protected PeerNodeListenerManager listenerManager;
     private volatile boolean running = false;
 
     private final Map<Long, List<SignedAction>> tickBuffer = new ConcurrentHashMap<>();
     private long currentProcessingTick = 0;
 
     private ClientNode() {
-        this.listenerManager = new ListenerManager();
+        this.listenerManager = new PeerNodeListenerManager();
     }
 
     private void ensureRunning() {
@@ -169,10 +168,10 @@ public class ClientNode implements NodeInputHandler {
 
         public ClientNode buildAndStart() {
             ClientNode node = new ClientNode();
-            node.listenerManager.addListener(PeerNodeCommitListener.class, this.mandatoryCommitListener);
+            node.listenerManager.addListener(this.mandatoryCommitListener);
 
             for (PeerNodeConnectionListener cl : connectionListeners) {
-                node.listenerManager.addListener(PeerNodeConnectionListener.class, cl);
+                node.listenerManager.addListener(cl);
             }
 
             node.running = true;

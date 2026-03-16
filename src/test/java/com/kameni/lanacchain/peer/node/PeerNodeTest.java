@@ -5,13 +5,12 @@ import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.peer.PeerIdentity;
+import com.kameni.lanacchain.peer.node.listeners.Listener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeCommitListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
 import com.kameni.lanacchain.testrunner.LanacTestUtils;
 import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.annotations.TestClass;
-
-// Use your own custom assertions for the reflection runner
 
 import java.net.Socket;
 import java.util.*;
@@ -143,7 +142,7 @@ public class PeerNodeTest {
                 .addConnectionListener(myListener)
                 .setPort(45003)
                 .buildAndStart();
-        node.listenerManager.addListener(PeerNodeConnectionListener.class, myListener);
+        node.listenerManager.addListener(myListener);
 
         byte[] fakeSignature = new byte[]{ 0x13, 0x37, 0x00 };
         SignedAction maliciousAction = LanacTestUtils.createTamperedAction(actionA.getInputData(), actionA.getPeerAddress(), fakeSignature);
