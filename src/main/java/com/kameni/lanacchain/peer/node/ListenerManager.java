@@ -15,10 +15,7 @@ public class ListenerManager<L> {
         listeners.remove(listener);
     }
 
-    public boolean hasConnectionListeners(){
-        return !listeners.isEmpty();
-    }
-    public boolean hasCommitListeners(){
+    public boolean hasListeners(){
         return !listeners.isEmpty();
     }
 

@@ -107,7 +107,7 @@ public class ClientNode implements NodeInputHandler {
         List<SignedAction> actionsThisTick = tickBuffer.get(tick);
 
         if (isTickComplete(tick)) {
-            if (peerNodeCommitListenerManager.hasCommitListeners()) {
+            if (peerNodeCommitListenerManager.hasListeners()) {
                 peerNodeCommitListenerManager.notifyAll(PeerNodeCommitListener::onTryProcessTick, actionsThisTick);
 
             } else {
