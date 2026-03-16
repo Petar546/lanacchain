@@ -151,23 +151,6 @@ public class ServerNode implements NodeInputHandler {
         }
     }
 
-
-    public void addListener(PeerNodeListener listener) {
-        if (listener instanceof PeerNodeCommitListener){
-            listenerManager.addListener(PeerNodeCommitListener.class ,(PeerNodeCommitListener) listener);
-        } else if (listener instanceof PeerNodeConnectionListener) {
-            listenerManager.addListener(PeerNodeConnectionListener.class, (PeerNodeConnectionListener) listener);
-        }
-    }
-
-    public void removeListener(PeerNodeListener listener) {
-        if (listener instanceof PeerNodeCommitListener){
-            listenerManager.removeListener(PeerNodeCommitListener.class, (PeerNodeCommitListener) listener);
-        } else if (listener instanceof PeerNodeConnectionListener) {
-            listenerManager.removeListener(PeerNodeConnectionListener.class, (PeerNodeConnectionListener) listener);
-        }
-    }
-
     public static class Builder {
         private int port = 0;
         private final PeerNodeCommitListener mandatoryCommitListener;
@@ -198,10 +181,10 @@ public class ServerNode implements NodeInputHandler {
 
         public ServerNode buildAndStart() {
             ServerNode node = new ServerNode(this.port);
-            node.addListener(this.mandatoryCommitListener);
+            node.listenerManager.addListener(PeerNodeCommitListener.class, this.mandatoryCommitListener);
 
             for (PeerNodeConnectionListener cl : connectionListeners) {
-                node.addListener(cl);
+                node.listenerManager.addListener(PeerNodeConnectionListener.class, cl);
             }
 
             node.running = true;

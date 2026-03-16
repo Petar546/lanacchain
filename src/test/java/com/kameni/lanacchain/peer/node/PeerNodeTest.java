@@ -143,7 +143,8 @@ public class PeerNodeTest {
                 .addConnectionListener(myListener)
                 .setPort(45003)
                 .buildAndStart();
-        node.addListener(myListener);
+        node.listenerManager.addListener(PeerNodeConnectionListener.class, myListener);
+
         byte[] fakeSignature = new byte[]{ 0x13, 0x37, 0x00 };
         SignedAction maliciousAction = LanacTestUtils.createTamperedAction(actionA.getInputData(), actionA.getPeerAddress(), fakeSignature);
 

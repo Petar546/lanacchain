@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 @SuppressWarnings("unchecked")
 public class ListenerManager {
-    private Map<Class<?>, List<?>> listenerGroups = new HashMap<>();
+    private final Map<Class<?>, List<?>> listenerGroups = new HashMap<>();
 
 
     public <L> void addListener(Class<L> type, L listener) {
@@ -17,7 +17,6 @@ public class ListenerManager {
     }
 
     public <L> void removeListener(Class<L> type, L listener) {
-        // Cast the returned List<?> to List<L> to allow adding/removing
         (
             (List<L>) listenerGroups.get(type)
         ).remove(listener);
