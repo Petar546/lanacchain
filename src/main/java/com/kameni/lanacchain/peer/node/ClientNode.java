@@ -19,14 +19,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientNode implements NodeInputHandler {
     public final List<Socket> peerConnections = Collections.synchronizedList(new ArrayList<>());
-    protected PeerNodeListenerManager peerNodeListenerManager;
+    protected ListenerManager<PeerNodeCommitListener> peerNodeCommitListenerManager;
+    protected ListenerManager<PeerNodeConnectionListener> peerNodeConnectionListenerManager;
     private volatile boolean running = false;
 
     private final Map<Long, List<SignedAction>> tickBuffer = new ConcurrentHashMap<>();
     private long currentProcessingTick = 0;
 
     private ClientNode() {
-        this.peerNodeListenerManager = new PeerNodeListenerManager();
+        this.peerNodeCommitListenerManager = new ListenerManager<>();
+        this.peerNodeConnectionListenerManager = new ListenerManager<>();
+
     }
 
     private void ensureRunning() {
@@ -55,11 +58,11 @@ public class ClientNode implements NodeInputHandler {
         try {
             Socket socket = new Socket(ip, peerPort);
             peerConnections.add(socket);
-            peerNodeListenerManager.notifyAllConnectionListeners(PeerNodeConnectionListener::onConnectedToPeer, socket);
+            peerNodeConnectionListenerManager.notifyAll(PeerNodeConnectionListener::onConnectedToPeer, socket);
 
             Runnable onException = () -> {
                 peerConnections.remove(socket);
-                peerNodeListenerManager.notifyAllConnectionListeners(PeerNodeConnectionListener::onPeerDisconnected, socket);
+                peerNodeConnectionListenerManager.notifyAll(PeerNodeConnectionListener::onPeerDisconnected, socket);
 
             };
             new Thread(() -> handlePeer(socket, this::addActionToPendingBuffer, onException)).start();
@@ -104,8 +107,8 @@ public class ClientNode implements NodeInputHandler {
         List<SignedAction> actionsThisTick = tickBuffer.get(tick);
 
         if (isTickComplete(tick)) {
-            if (peerNodeListenerManager.hasCommitListeners()) {
-                peerNodeListenerManager.notifyAllCommitListeners(PeerNodeCommitListener::onTryProcessTick, actionsThisTick);
+            if (peerNodeCommitListenerManager.hasCommitListeners()) {
+                peerNodeCommitListenerManager.notifyAll(PeerNodeCommitListener::onTryProcessTick, actionsThisTick);
 
             } else {
                 throw new RuntimeException("Cant commit To Local Chain because no listener is present");
@@ -136,11 +139,19 @@ public class ClientNode implements NodeInputHandler {
     }
 
     public void addListener(PeerNodeListener listener) {
-        peerNodeListenerManager.addListener(listener);
+        if (listener instanceof PeerNodeCommitListener){
+            peerNodeCommitListenerManager.addListener((PeerNodeCommitListener) listener);
+        } else if (listener instanceof PeerNodeConnectionListener) {
+            peerNodeConnectionListenerManager.addListener((PeerNodeConnectionListener) listener);
+        }
     }
 
     public void removeListener(PeerNodeListener listener) {
-        peerNodeListenerManager.removeListener(listener);
+        if (listener instanceof PeerNodeCommitListener){
+            peerNodeCommitListenerManager.removeListener((PeerNodeCommitListener) listener);
+        } else if (listener instanceof PeerNodeConnectionListener) {
+            peerNodeConnectionListenerManager.removeListener((PeerNodeConnectionListener) listener);
+        }
     }
 
     @Override
