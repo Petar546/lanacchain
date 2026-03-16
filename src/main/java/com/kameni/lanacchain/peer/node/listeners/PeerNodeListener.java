@@ -4,5 +4,5 @@ import com.kameni.lanacchain.lanac.data.SignedAction;
 
 import java.util.List;
 
-public interface PeerNodeListener {
+public interface PeerNodeListener extends Listener {
 }
