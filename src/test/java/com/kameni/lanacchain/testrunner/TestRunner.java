@@ -23,8 +23,15 @@ public class TestRunner {
             for (Method m : testInstance.getClass().getDeclaredMethods()) {
                 //skip non test methods
                 if (m.isAnnotationPresent(Test.class)) {
-                    TestMethodData testMethodData = runTestMethodOfInstance(m, testInstance);
-                    overallResult.addResult(testMethodData);
+                    TestMethodData testMethodData = new TestMethodData(testInstance.getClass(), m, testInstance.getClass().getSimpleName(), 1);
+
+                    printMethodStart(testMethodData);
+
+                    TestMethodResult testMethodResult = runTestMethodOfInstance(testMethodData, testInstance);
+                    overallResult.addResult(testMethodResult);
+
+                    printMethodFinish(testMethodResult);
+
                 }
             }
         }
@@ -41,9 +48,10 @@ public class TestRunner {
 
 
 
+
     private static void printResultTable(TestResult overallResult) {
         int maxLinkLength = overallResult.results.stream()
-                .mapToInt(r -> (r.methodName() + "(" + r.instanceClassName() + ":" + r.lineNumber() + ")").length())
+                .mapToInt(r -> (r.testMethodData().methodName() + "(" + r.testMethodData().instanceClassName() + ":" + r.testMethodData().lineNumber() + ")").length())
                 .max()
                 .orElse(40);
         maxLinkLength = Math.max(maxLinkLength, 40);
@@ -56,21 +64,21 @@ public class TestRunner {
         IO.println(String.format(headerFormat, "Method Reference", "Time", "Status"));
         IO.println(separator);
 
-        for (TestMethodData data : overallResult.results) {
-            String status = data.passed() ? "PASSED" : "FAILED";
-            Color statusColor = data.passed() ? Color.GREEN : Color.RED;
+        for (TestMethodResult methodResult : overallResult.results) {
+            String status = methodResult.passed() ? "PASSED" : "FAILED";
+            Color statusColor = methodResult.passed() ? Color.GREEN : Color.RED;
 
-            String clickableLink = String.format("%s(%s:%d)", data.methodName(), data.instanceClassName(), data.lineNumber());
+            String clickableLink = String.format("%s(%s:%d)", methodResult.testMethodData().methodName(), methodResult.testMethodData().instanceClassName(), methodResult.lineNumber());
 
-            TestPrint.printColored(String.format(rowFormat, clickableLink, data.durationMs()), statusColor);
+            TestPrint.printColored(String.format(rowFormat, clickableLink, methodResult.durationMs()), statusColor);
             TestPrint.printColoredln(status, statusColor);
         }
 
         IO.println(separator);
 
-        long totalPassed = overallResult.results.stream().filter(TestMethodData::passed).count();
+        long totalPassed = overallResult.results.stream().filter(TestMethodResult::passed).count();
         long totalFailed = overallResult.results.stream().filter(r -> !r.passed()).count();
-        long totalTime = overallResult.results.stream().mapToLong(TestMethodData::durationMs).sum();
+        long totalTime = overallResult.results.stream().mapToLong(TestMethodResult::durationMs).sum();
 
         IO.print("Final Results: " + totalPassed + " Passed, ");
         if (totalFailed > 0) {
@@ -81,19 +89,13 @@ public class TestRunner {
         IO.println(" (Total Time: " + totalTime + " ms)");
     }
 
-    public TestMethodData runTestMethodOfInstance(Method testMethod, Object methodsInstance) {
-        String instanceClassName = methodsInstance.getClass().getSimpleName();
-
-        String fullMethodName = instanceClassName + "." + getTestMethodName(testMethod);
-
-        printMethodStart(fullMethodName);
-
+    public TestMethodResult runTestMethodOfInstance(TestMethodData testMethodData, Object methodsInstance) {
         long timerStartTime = System.nanoTime();
         Throwable testError = null;
         boolean isPassed = false;
 
         try {
-            testMethod.invoke(methodsInstance);
+            testMethodData.method().invoke(methodsInstance);
             isPassed = true;
 
         } catch (InvocationTargetException e) {
@@ -103,57 +105,31 @@ public class TestRunner {
         }
 
         long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
-        int lineNumber = findLineNumber(testError, testMethod);
 
-        printMethodFinish(fullMethodName, isPassed, testDuration, testError);
-
-        return new TestMethodData(fullMethodName, instanceClassName, lineNumber, testDuration, isPassed, testError);
+        return new TestMethodResult(testMethodData, testDuration, isPassed, testError);
     }
 
-    private static void printMethodStart(String currentMethodName) {
+    private static void printMethodStart(TestMethodData testMethodData) {
         IO.print("------ Running ");
-        TestPrint.printColored(currentMethodName, Color.MAGENTA);
+        TestPrint.printColored(testMethodData.fullRealMethodName(), Color.MAGENTA);
         IO.println("... ------");
     }
 
-
-    private void printMethodFinish(String methodName, boolean passed, long duration, Throwable error) {
+    private void printMethodFinish(TestMethodResult testMethodResult) {
         IO.print("------ Finished ");
-        Color statusColor = passed ? Color.GREEN : Color.RED;
-        String statusText = passed ? " PASSED" : " FAILED";
+        Color statusColor = testMethodResult.passed() ? Color.GREEN : Color.RED;
+        String statusText = testMethodResult.passed() ? " PASSED" : " FAILED";
 
-        TestPrint.printColored(methodName + statusText, statusColor);
-        IO.print(" (" + duration + "ms) ------");
+        TestPrint.printColored(testMethodResult.testMethodData().fullRealMethodName() + statusText, statusColor);
+        IO.print(" (" + testMethodResult.durationMs() + "ms) ------");
 
-        if (!passed) {
+        if (!testMethodResult.passed()) {
             IO.println(" with stacktrace");
-            if (error != null) error.printStackTrace(System.out);
+            if (testMethodResult.error() != null) testMethodResult.error().printStackTrace(System.out);
         } else {
             IO.println("");
         }
         IO.println("\n");
-    }
-
-    private int findLineNumber(Throwable t, Method m) {
-        if (t == null) return 1;
-        for (StackTraceElement element : t.getStackTrace()) {
-            if (element.getClassName().contains(m.getDeclaringClass().getSimpleName()) && element.getMethodName().equals(m.getName())) {
-                return element.getLineNumber();
-            }
-        }
-        return 1;
-    }
-
-    private static String getTestMethodName(Method m) {
-        Test annotation = m.getAnnotation(Test.class);
-
-        String methodName;
-        if (!Objects.equals(annotation.name(), "")){
-            methodName = annotation.name();
-        }else{
-            methodName = m.getName().replace("test__", "");
-        }
-        return methodName;
     }
 
 }
