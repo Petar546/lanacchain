@@ -12,7 +12,7 @@ public record TestMethodData(
         int lineNumber
 ){
 
-    public String methodName() {
+    private String methodName() {
         return method.getName();
     }
 
@@ -24,14 +24,14 @@ public record TestMethodData(
      *
      * @return methodName from annotation and without test__ prefix
      */
-    public String realTestMethodName() {
+    private String realTestMethodName() {
         Test annotation = method.getAnnotation(Test.class);
 
         String realMethodName;
         if (!Objects.equals(annotation.name(), "")){
             realMethodName = annotation.name();
         }else{
-            realMethodName = method.getName().replace("test__", "");
+            realMethodName = methodName().replace("test__", "");
         }
         return realMethodName;
     }

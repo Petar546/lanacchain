@@ -1,5 +1,4 @@
 package com.kameni.lanacchain.testrunner;
-import com.kameni.lanacchain.testrunner.ThrowingRunnable;
 
 public class LanacAssert {
 

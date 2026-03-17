@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="TestRunner" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="com.kameni.lanacchain.testrunner.TestRunner" />
+  <configuration default="false" name="TestRun" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.kameni.lanacchain.testrunner.TestRun" />
     <module name="lanacchain" />
     <option name="PROGRAM_PARAMETERS" value="--enable-preview" />
     <method v="2">
