@@ -20,8 +20,13 @@ public class TestRunner {
         for (Object testInstance : testInstances){
             TestPrint.printColoredln("--- Test Class: " + testInstance.getClass().getSimpleName() + " ---", Color.PINK);
 
-            TestResult currentTestTestResult = runMethodsOfInstance(testInstance);
-            overallResult.add(currentTestTestResult);
+            for (Method m : testInstance.getClass().getDeclaredMethods()) {
+                //skip non test methods
+                if (m.isAnnotationPresent(Test.class)) {
+                    TestMethodData testMethodData = runTestMethodOfInstance(m, testInstance);
+                    overallResult.addResult(testMethodData);
+                }
+            }
         }
 
 
@@ -38,7 +43,7 @@ public class TestRunner {
 
     private static void printResultTable(TestResult overallResult) {
         int maxLinkLength = overallResult.results.stream()
-                .mapToInt(r -> (r.methodName() + "(" + r.fileName() + ":" + r.lineNumber() + ")").length())
+                .mapToInt(r -> (r.methodName() + "(" + r.instanceClassName() + ":" + r.lineNumber() + ")").length())
                 .max()
                 .orElse(40);
         maxLinkLength = Math.max(maxLinkLength, 40);
@@ -51,11 +56,11 @@ public class TestRunner {
         IO.println(String.format(headerFormat, "Method Reference", "Time", "Status"));
         IO.println(separator);
 
-        for (TestResult.TestMethodData data : overallResult.results) {
+        for (TestMethodData data : overallResult.results) {
             String status = data.passed() ? "PASSED" : "FAILED";
             Color statusColor = data.passed() ? Color.GREEN : Color.RED;
 
-            String clickableLink = String.format("%s(%s:%d)", data.methodName(), data.fileName(), data.lineNumber());
+            String clickableLink = String.format("%s(%s:%d)", data.methodName(), data.instanceClassName(), data.lineNumber());
 
             TestPrint.printColored(String.format(rowFormat, clickableLink, data.durationMs()), statusColor);
             TestPrint.printColoredln(status, statusColor);
@@ -63,9 +68,9 @@ public class TestRunner {
 
         IO.println(separator);
 
-        long totalPassed = overallResult.results.stream().filter(TestResult.TestMethodData::passed).count();
+        long totalPassed = overallResult.results.stream().filter(TestMethodData::passed).count();
         long totalFailed = overallResult.results.stream().filter(r -> !r.passed()).count();
-        long totalTime = overallResult.results.stream().mapToLong(TestResult.TestMethodData::durationMs).sum();
+        long totalTime = overallResult.results.stream().mapToLong(TestMethodData::durationMs).sum();
 
         IO.print("Final Results: " + totalPassed + " Passed, ");
         if (totalFailed > 0) {
@@ -76,40 +81,33 @@ public class TestRunner {
         IO.println(" (Total Time: " + totalTime + " ms)");
     }
 
-    public TestResult runMethodsOfInstance(Object testInstance) {
-        TestResult testResult = new TestResult();
+    public TestMethodData runTestMethodOfInstance(Method testMethod, Object methodsInstance) {
+        String instanceClassName = methodsInstance.getClass().getSimpleName();
 
-        String testClassName = testInstance.getClass().getSimpleName();
-        for (Method m : testInstance.getClass().getDeclaredMethods()) {
-            //skip non test methods
-            if (!m.isAnnotationPresent(Test.class)) continue;
+        String fullMethodName = instanceClassName + "." + getTestMethodName(testMethod);
 
-            String currentMethodName = testClassName + "." + getTestMethodName(m);
+        printMethodStart(fullMethodName);
 
-            printMethodStart(currentMethodName);
+        long timerStartTime = System.nanoTime();
+        Throwable testError = null;
+        boolean isPassed = false;
 
-            long timerStartTime = System.nanoTime();
-            Throwable testError = null;
-            boolean isPassed = false;
+        try {
+            testMethod.invoke(methodsInstance);
+            isPassed = true;
 
-            try {
-                m.invoke(testInstance);
-                isPassed = true;
-
-            } catch (InvocationTargetException e) {
-                testError = e.getCause();
-            } catch (Exception e) {
-                testError = e;
-            }
-
-            long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
-            int lineNumber = findLineNumber(testError, m);
-
-            printMethodFinish(currentMethodName, isPassed, testDuration, testError);
-
-            testResult.addResult(currentMethodName, testClassName + ".java", lineNumber, testDuration, isPassed, testError);
+        } catch (InvocationTargetException e) {
+            testError = e.getCause();
+        } catch (Exception e) {
+            testError = e;
         }
-        return testResult;
+
+        long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
+        int lineNumber = findLineNumber(testError, testMethod);
+
+        printMethodFinish(fullMethodName, isPassed, testDuration, testError);
+
+        return new TestMethodData(fullMethodName, instanceClassName, lineNumber, testDuration, isPassed, testError);
     }
 
     private static void printMethodStart(String currentMethodName) {
