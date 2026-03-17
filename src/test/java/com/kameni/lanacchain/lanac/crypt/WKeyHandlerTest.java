@@ -3,13 +3,13 @@ package com.kameni.lanacchain.lanac.crypt;
 
 import com.kameni.lanacchain.exceptions.LanacKeyConversionException;
 import com.kameni.lanacchain.peer.PeerIdentity;
-import com.kameni.lanacchain.testrunner.annotations.Test;
-import com.kameni.lanacchain.testrunner.annotations.TestClass;
+import com.kameni.lanactest.annotations.Test;
+import com.kameni.lanactest.annotations.TestClass;
 
 import java.security.PublicKey;
 
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertThrows;
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
+import static com.kameni.lanactest.LanacAssert.assertThrows;
+import static com.kameni.lanactest.LanacAssert.assertTrue;
 
 @TestClass
 public class WKeyHandlerTest {

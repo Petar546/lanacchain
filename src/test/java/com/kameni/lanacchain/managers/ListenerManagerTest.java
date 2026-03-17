@@ -1,13 +1,13 @@
 package com.kameni.lanacchain.managers;
 
 import com.kameni.lanacchain.peer.node.listeners.Listener;
-import com.kameni.lanacchain.testrunner.annotations.Test;
-import com.kameni.lanacchain.testrunner.annotations.TestClass;
+import com.kameni.lanactest.annotations.Test;
+import com.kameni.lanactest.annotations.TestClass;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertFalse;
+import static com.kameni.lanactest.LanacAssert.assertTrue;
+import static com.kameni.lanactest.LanacAssert.assertFalse;
 
 @TestClass
 public class ListenerManagerTest {

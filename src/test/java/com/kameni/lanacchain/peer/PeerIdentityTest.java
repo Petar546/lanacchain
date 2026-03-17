@@ -3,10 +3,10 @@ package com.kameni.lanacchain.peer;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
-import com.kameni.lanacchain.testrunner.annotations.Test;
-import com.kameni.lanacchain.testrunner.annotations.TestClass;
+import com.kameni.lanactest.annotations.Test;
+import com.kameni.lanactest.annotations.TestClass;
 
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
+import static com.kameni.lanactest.LanacAssert.assertTrue;
 
 @TestClass
 public class PeerIdentityTest {

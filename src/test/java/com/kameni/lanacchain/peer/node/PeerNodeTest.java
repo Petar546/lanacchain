@@ -5,19 +5,18 @@ import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.peer.PeerIdentity;
-import com.kameni.lanacchain.peer.node.listeners.Listener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeCommitListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
-import com.kameni.lanacchain.testrunner.LanacTestUtils;
-import com.kameni.lanacchain.testrunner.annotations.Test;
-import com.kameni.lanacchain.testrunner.annotations.TestClass;
+import com.kameni.lanacchain.LanacTestUtils;
+import com.kameni.lanactest.annotations.Test;
+import com.kameni.lanactest.annotations.TestClass;
 
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.kameni.lanacchain.testrunner.LanacAssert.*;
+import static com.kameni.lanactest.LanacAssert.*;
 
 @TestClass
 public class PeerNodeTest {

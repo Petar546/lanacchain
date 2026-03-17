@@ -1,4 +1,4 @@
-package com.kameni.lanacchain.testrunner;
+package com.kameni.lanacchain;
 
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;

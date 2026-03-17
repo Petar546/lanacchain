@@ -2,14 +2,14 @@ package com.kameni.lanacchain.managers;
 
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeListener;
-import com.kameni.lanacchain.testrunner.annotations.Test;
-import com.kameni.lanacchain.testrunner.annotations.TestClass;
+import com.kameni.lanactest.annotations.Test;
+import com.kameni.lanactest.annotations.TestClass;
 
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertFalse;
+import static com.kameni.lanactest.LanacAssert.assertTrue;
+import static com.kameni.lanactest.LanacAssert.assertFalse;
 
 @TestClass
 public class PeerNodeListenerManagerTest {

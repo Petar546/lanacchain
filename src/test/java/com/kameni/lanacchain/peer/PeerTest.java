@@ -6,15 +6,15 @@ import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeBroadcastListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
-import com.kameni.lanacchain.testrunner.annotations.Test;
-import com.kameni.lanacchain.testrunner.annotations.TestClass;
+import com.kameni.lanactest.annotations.Test;
+import com.kameni.lanactest.annotations.TestClass;
 
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.kameni.lanacchain.testrunner.LanacAssert.assertTrue;
+import static com.kameni.lanactest.LanacAssert.assertTrue;
 
 @TestClass
 public class PeerTest {

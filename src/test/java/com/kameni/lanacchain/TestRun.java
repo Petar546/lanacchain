@@ -1,6 +1,6 @@
 package com.kameni.lanacchain;
 
-import com.kameni.lanacchain.testrunner.TestRunner;
+import com.kameni.lanactest.TestRunner;
 
 public class TestRun {
 
