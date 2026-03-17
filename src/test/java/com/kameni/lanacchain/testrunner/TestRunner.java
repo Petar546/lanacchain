@@ -3,7 +3,6 @@ package com.kameni.lanacchain.testrunner;
 import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.display.Color;
 import com.kameni.lanacchain.testrunner.display.TestPrint;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -64,9 +63,9 @@ public class TestRunner {
 
         IO.println(separator);
 
-        int totalPassed = (int) overallResult.results.stream().filter(r -> r.passed()).count();
-        int totalFailed = (int) overallResult.results.stream().filter(r -> !r.passed()).count();
-        long totalTime = overallResult.results.stream().mapToLong(r -> r.durationMs()).sum();
+        long totalPassed = overallResult.results.stream().filter(TestResult.TestMethodData::passed).count();
+        long totalFailed = overallResult.results.stream().filter(r -> !r.passed()).count();
+        long totalTime = overallResult.results.stream().mapToLong(TestResult.TestMethodData::durationMs).sum();
 
         IO.print("Final Results: " + totalPassed + " Passed, ");
         if (totalFailed > 0) {
@@ -87,9 +86,7 @@ public class TestRunner {
 
             String currentMethodName = testClassName + "." + getTestMethodName(m);
 
-            IO.print("------ Running ");
-            TestPrint.printColored(currentMethodName, Color.MAGENTA);
-            IO.println("... ------");
+            printMethodStart(currentMethodName);
 
             long timerStartTime = System.nanoTime();
             Throwable testError = null;
@@ -108,43 +105,53 @@ public class TestRunner {
             long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
             int lineNumber = findLineNumber(testError, m);
 
-            IO.print("------ Finished ");
-            if (isPassed) {
-                TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
-                IO.println(" (" + testDuration + "ms) ------");
-
-            } else {
-                TestPrint.printColored(currentMethodName + " FAILED", Color.RED);
-                IO.print(" (" + testDuration + "ms) ------");
-                IO.println(" with stacktrace");
-
-                if (testError != null) {
-                    testError.printStackTrace(System.out);
-                }
-            }
-            IO.println("\n");
+            printMethodFinish(currentMethodName, isPassed, testDuration, testError);
 
             testResult.addResult(currentMethodName, testClassName + ".java", lineNumber, testDuration, isPassed, testError);
         }
         return testResult;
     }
 
+    private static void printMethodStart(String currentMethodName) {
+        IO.print("------ Running ");
+        TestPrint.printColored(currentMethodName, Color.MAGENTA);
+        IO.println("... ------");
+    }
+
+
+    private void printMethodFinish(String methodName, boolean passed, long duration, Throwable error) {
+        IO.print("------ Finished ");
+        Color statusColor = passed ? Color.GREEN : Color.RED;
+        String statusText = passed ? " PASSED" : " FAILED";
+
+        TestPrint.printColored(methodName + statusText, statusColor);
+        IO.print(" (" + duration + "ms) ------");
+
+        if (!passed) {
+            IO.println(" with stacktrace");
+            if (error != null) error.printStackTrace(System.out);
+        } else {
+            IO.println("");
+        }
+        IO.println("\n");
+    }
+
     private int findLineNumber(Throwable t, Method m) {
         if (t == null) return 1;
         for (StackTraceElement element : t.getStackTrace()) {
-            if (element.getClassName().contains(m.getClass().getSimpleName()) && element.getMethodName().equals(m.getName())) {
+            if (element.getClassName().contains(m.getDeclaringClass().getSimpleName()) && element.getMethodName().equals(m.getName())) {
                 return element.getLineNumber();
             }
         }
         return 1;
     }
 
-
     private static String getTestMethodName(Method m) {
+        Test annotation = m.getAnnotation(Test.class);
+
         String methodName;
-        m.getClass().getSimpleName();
-        if (!Objects.equals(m.getAnnotation(Test.class).name(), "")){
-            methodName = m.getAnnotation(Test.class).name();
+        if (!Objects.equals(annotation.name(), "")){
+            methodName = annotation.name();
         }else{
             methodName = m.getName().replace("test__", "");
         }
