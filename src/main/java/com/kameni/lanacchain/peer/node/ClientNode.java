@@ -5,6 +5,7 @@ import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.SignedAction;
 import com.kameni.lanacchain.managers.PeerNodeListenerManager;
 import com.kameni.lanacchain.peer.NodeInputHandler;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeBroadcastListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeCommitListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
 
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientNode implements NodeInputHandler {
     public final List<Socket> peerConnections = Collections.synchronizedList(new ArrayList<>());
-    protected PeerNodeListenerManager listenerManager;
+    private PeerNodeListenerManager listenerManager;
     private volatile boolean running = false;
 
     private final Map<Long, List<SignedAction>> tickBuffer = new ConcurrentHashMap<>();
@@ -99,7 +100,8 @@ public class ClientNode implements NodeInputHandler {
         return actionsThisTick != null && actionsThisTick.size() >= (peerConnections.size() + 1);
     }
 
-
+    // TODO: this Client Server Node stuff doesnt work, combine them properly
+    // the client sets the broadcast but im not sure where it ends up, at the serverNode? what does it do with it? why are there two broadcast and tryProcessTick
     private void tryProcessTick(long tick) {
         List<SignedAction> actionsThisTick = tickBuffer.get(tick);
 
@@ -128,11 +130,16 @@ public class ClientNode implements NodeInputHandler {
                     out.writeInt(serializedAction.length);
                     out.write(serializedAction);
                     out.flush();
+                    listenerManager.notifyAll(PeerNodeBroadcastListener.class, PeerNodeBroadcastListener::onBroadcast, socket);
                 } catch (IOException e) {
                     throw new RuntimeException("Disconnect", e);
                 }
             }
         }
+    }
+
+    public PeerNodeListenerManager getListenerManager() {
+        return listenerManager;
     }
 
     @Override

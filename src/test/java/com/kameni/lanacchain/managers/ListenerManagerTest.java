@@ -57,12 +57,12 @@ public class ListenerManagerTest {
 
         // Create a listener implementation
         SpecificListener listener1 = (data) -> {
-            if ("test-data1".equals(data)) {
+            if ("test-data".equals(data)) {
                 wasCalled1.set(true);
             }
         };
         SpecificListener listener2 = (data) -> {
-            if ("test-data2".equals(data)) {
+            if ("test-data".equals(data)) {
                 wasCalled2.set(true);
             }
         };
@@ -74,7 +74,7 @@ public class ListenerManagerTest {
         assertTrue(manager.hasListeners(SpecificListener.class), "Manager should have SpecificListener");
 
         // Notify
-        manager.notifyAll(SpecificListener.class, SpecificListener::onEvent, "test-data1");
+        manager.notifyAll(SpecificListener.class, SpecificListener::onEvent, "test-data");
         IO.println("wasCalled1:" + wasCalled1);
         IO.println("wasCalled2:" + wasCalled2);
 

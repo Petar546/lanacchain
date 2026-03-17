@@ -4,10 +4,12 @@ import com.kameni.lanacchain.exceptions.LanacSignatureException;
 import com.kameni.lanacchain.lanac.Lanac;
 import com.kameni.lanacchain.lanac.data.LanacData;
 import com.kameni.lanacchain.lanac.data.SignedAction;
+import com.kameni.lanacchain.peer.node.listeners.PeerNodeBroadcastListener;
 import com.kameni.lanacchain.peer.node.listeners.PeerNodeConnectionListener;
 import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.annotations.TestClass;
 
+import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -76,8 +78,10 @@ public class PeerTest {
 
     @Test
     public void test__peerConnectAndShareData() throws Exception{
+        setUp();
 
         CountDownLatch portsFoundLatch = new CountDownLatch(2);
+        CountDownLatch broadcastLatch = new CountDownLatch(2);
         PeerNodeConnectionListener p1Listener = new PeerNodeConnectionListener() {
             @Override
             public int onPortChosen(int port) {
@@ -96,6 +100,23 @@ public class PeerTest {
             }
         };
 
+        PeerNodeBroadcastListener broadcastListener1 = new PeerNodeBroadcastListener() {
+            @Override
+            public Socket onBroadcast(Socket socket){
+                IO.println("broadcast1 happened");
+                broadcastLatch.countDown();
+                return socket;
+            };
+        };
+        PeerNodeBroadcastListener broadcastListener2 = new PeerNodeBroadcastListener() {
+            @Override
+            public Socket onBroadcast(Socket socket){
+                IO.println("broadcast2 happened");
+                broadcastLatch.countDown();
+                return socket;
+            };
+        };
+
         Peer peer1 = new Peer.Builder()
                 .customConnectionListener(p1Listener)
                 .buildAndStart();
@@ -111,14 +132,19 @@ public class PeerTest {
         int peerNode2port = peer2.getServerNode().getPort();
 
 
+        peer1.getClientNode().getListenerManager().addListener(broadcastListener1);
+        peer2.getClientNode().getListenerManager().addListener(broadcastListener2);
+
         // wait for the port to be assigned
         peer1.connectToPeer("127.0.0.1", peerNode2port);
         peer2.connectToPeer("127.0.0.1", peerNode1port);
         peer1.getClientNode().broadcastAction(actionA);
         peer2.getClientNode().broadcastAction(actionB);
+        assertTrue(broadcastLatch.await(4, TimeUnit.SECONDS), "Broadcast hasnt happened");
 
         Lanac lanac1 = peer1.getLanac();
         Lanac lanac2 = peer2.getLanac();
+
 
         for (int i = 0; i < lanac1.getBlockchainSize(); i++) {
             String blockDisplay = String.format("Block[%d] Hash: %s | Prev: %s",
@@ -129,11 +155,14 @@ public class PeerTest {
 
             IO.println(blockDisplay);
         }
-        assertTrue(lanac1.isChainValid(), "Chain isnt valid");
-        assertTrue(lanac2.isChainValid(), "Chain isnt valid");
 
-        assertTrue(lanac1.getBlockchainSize() == 2, "Blockchain size doesnt match");
-        assertTrue(lanac2.getBlockchainSize() == 2, "Blockchain size doesnt match");
+
+        assertTrue(lanac1.isChainValid(), "Chain1 isnt valid");
+        assertTrue(lanac2.isChainValid(), "Chain2 isnt valid");
+
+        //size 2 cause first is origin block
+        assertTrue(lanac1.getBlockchainSize() == 2, "Blockchain1 size doesnt match");
+        assertTrue(lanac2.getBlockchainSize() == 2, "Blockchain2 size doesnt match");
 
 
     }
