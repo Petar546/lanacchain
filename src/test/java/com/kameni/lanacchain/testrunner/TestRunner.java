@@ -98,6 +98,7 @@ public class TestRunner {
 
             try {
                 m.invoke(testInstance);
+                throw new TestPassedSignal();
             } catch (Exception e) {
 
                 long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);

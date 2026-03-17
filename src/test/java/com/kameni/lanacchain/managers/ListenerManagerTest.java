@@ -48,6 +48,41 @@ public class ListenerManagerTest {
         assertTrue(wasCalled.get(), "Listener method was not called with correct data");
     }
 
+
+    @Test
+    public void test__addMultipleListenersAndNotify() throws Exception {
+        TestManager manager = new TestManager();
+        AtomicBoolean wasCalled1 = new AtomicBoolean(false);
+        AtomicBoolean wasCalled2 = new AtomicBoolean(false);
+
+        // Create a listener implementation
+        SpecificListener listener1 = (data) -> {
+            if ("test-data1".equals(data)) {
+                wasCalled1.set(true);
+            }
+        };
+        SpecificListener listener2 = (data) -> {
+            if ("test-data2".equals(data)) {
+                wasCalled2.set(true);
+            }
+        };
+
+        // Add multiple and check state
+        manager.addListener(listener1);
+        manager.addListener(listener2);
+
+        assertTrue(manager.hasListeners(SpecificListener.class), "Manager should have SpecificListener");
+
+        // Notify
+        manager.notifyAll(SpecificListener.class, SpecificListener::onEvent, "test-data1");
+        IO.println("wasCalled1:" + wasCalled1);
+        IO.println("wasCalled2:" + wasCalled2);
+
+        assertTrue(wasCalled1.get(), "Listener1 method was not called with correct data");
+        assertTrue(wasCalled2.get(), "Listener2 method was not called with correct data");
+
+    }
+
     @Test
     public void test__removeListener() throws Exception {
         TestManager manager = new TestManager();

@@ -1,6 +1,5 @@
 package com.kameni.lanacchain.testrunner;
-
-import com.kameni.lanacchain.testrunner.exceptions.TestPassedSignal;
+import com.kameni.lanacchain.testrunner.ThrowingRunnable;
 
 public class LanacAssert {
 
@@ -8,7 +7,7 @@ public class LanacAssert {
         if (!condition) {
             throw new RuntimeException("Assertion Failed: " + failedMessage);
         }
-        throw new TestPassedSignal();
+        // Do nothing on success. This allows the next line of the test to run.
     }
 
     public static void assertFalse(boolean condition, String failedMessage) {
@@ -17,15 +16,11 @@ public class LanacAssert {
 
 
     public static void assertEquals(Object expected, Object actual, String failedMessage) {
-        if (expected == null && actual == null) {
-            throw new TestPassedSignal();
+        boolean match = (expected == null && actual == null) || (expected != null && expected.equals(actual));
+        if (!match) {
+            throw new RuntimeException("Assertion Failed: " + failedMessage
+                    + " [Expected: " + expected + ", Actual: " + actual + "]");
         }
-        if (expected != null && expected.equals(actual)){
-            throw new TestPassedSignal();
-        }
-
-        throw new RuntimeException("Assertion Failed: " + failedMessage
-                + " [Expected: " + expected + ", Actual: " + actual + "]");
     }
 
     public static void assertThrows(Class<? extends Throwable> expectedException, ThrowingRunnable runnable, String failedMessage) {
@@ -33,7 +28,7 @@ public class LanacAssert {
             runnable.run();
         } catch (Throwable caught) {
             if (expectedException.isInstance(caught)) {
-                throw new TestPassedSignal();
+                return; // Success
             }
 
             throw new RuntimeException("Assertion Failed: " + failedMessage
