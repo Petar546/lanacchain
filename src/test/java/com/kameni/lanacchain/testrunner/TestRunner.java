@@ -1,6 +1,9 @@
 package com.kameni.lanacchain.testrunner;
 
 import com.kameni.lanacchain.testrunner.annotations.Test;
+import com.kameni.lanacchain.testrunner.data.TestMethodData;
+import com.kameni.lanacchain.testrunner.data.TestMethodResult;
+import com.kameni.lanacchain.testrunner.data.TestResultGroup;
 import com.kameni.lanacchain.testrunner.display.Color;
 import com.kameni.lanacchain.testrunner.display.TestPrint;
 import java.lang.reflect.InvocationTargetException;
@@ -16,7 +19,7 @@ public class TestRunner {
         String packageName = "com.kameni.lanacchain";
         List<Object> testInstances = TestHelpers.findTests(packageName);
 
-        TestResult overallResult = new TestResult();
+        TestResultGroup overallResultGroup = new TestResultGroup();
         for (Object testInstance : testInstances){
             TestPrint.printColoredln("--- Test Class: " + testInstance.getClass().getSimpleName() + " ---", Color.PINK);
 
@@ -28,7 +31,7 @@ public class TestRunner {
                     printMethodStart(testMethodData);
 
                     TestMethodResult testMethodResult = runTestMethodOfInstance(testMethodData, testInstance);
-                    overallResult.addResult(testMethodResult);
+                    overallResultGroup.addResult(testMethodResult);
 
                     printMethodFinish(testMethodResult);
 
@@ -37,9 +40,9 @@ public class TestRunner {
         }
 
 
-        printResultTable(overallResult);
+        printResultTable(overallResultGroup);
 
-        if (!overallResult.getFailed().isEmpty()){
+        if (!overallResultGroup.getFailed().isEmpty()){
             System.exit(1);
         }else {
             System.exit(0);
@@ -49,8 +52,8 @@ public class TestRunner {
 
 
 
-    private static void printResultTable(TestResult overallResult) {
-        int maxLinkLength = overallResult.results.stream()
+    private static void printResultTable(TestResultGroup overallResult) {
+        int maxLinkLength = overallResult.getResults().stream()
                 .mapToInt(r -> (r.testMethodData().methodName() + "(" + r.testMethodData().instanceClassName() + ":" + r.testMethodData().lineNumber() + ")").length())
                 .max()
                 .orElse(40);
@@ -64,7 +67,7 @@ public class TestRunner {
         IO.println(String.format(headerFormat, "Method Reference", "Time", "Status"));
         IO.println(separator);
 
-        for (TestMethodResult methodResult : overallResult.results) {
+        for (TestMethodResult methodResult : overallResult.getResults()) {
             String status = methodResult.passed() ? "PASSED" : "FAILED";
             Color statusColor = methodResult.passed() ? Color.GREEN : Color.RED;
 
@@ -76,9 +79,9 @@ public class TestRunner {
 
         IO.println(separator);
 
-        long totalPassed = overallResult.results.stream().filter(TestMethodResult::passed).count();
-        long totalFailed = overallResult.results.stream().filter(r -> !r.passed()).count();
-        long totalTime = overallResult.results.stream().mapToLong(TestMethodResult::durationMs).sum();
+        long totalPassed = overallResult.getResults().stream().filter(TestMethodResult::passed).count();
+        long totalFailed = overallResult.getResults().stream().filter(r -> !r.passed()).count();
+        long totalTime = overallResult.getResults().stream().mapToLong(TestMethodResult::durationMs).sum();
 
         IO.print("Final Results: " + totalPassed + " Passed, ");
         if (totalFailed > 0) {

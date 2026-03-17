@@ -1,15 +1,17 @@
-package com.kameni.lanacchain.testrunner;
+package com.kameni.lanacchain.testrunner.data;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestResult {
-    // Helper class to store specific details for each method
-
+public class TestResultGroup {
 
     final List<TestMethodResult> results = new ArrayList<>();
 
-    void add(TestResult other) {
+    public List<TestMethodResult> getResults() {
+        return results;
+    }
+
+    void add(TestResultGroup other) {
         this.results.addAll(other.results);
     }
 

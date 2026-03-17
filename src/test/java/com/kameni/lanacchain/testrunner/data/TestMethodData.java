@@ -1,4 +1,4 @@
-package com.kameni.lanacchain.testrunner;
+package com.kameni.lanacchain.testrunner.data;
 
 import com.kameni.lanacchain.testrunner.annotations.Test;
 

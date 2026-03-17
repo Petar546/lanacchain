@@ -1,7 +1,4 @@
-package com.kameni.lanacchain.testrunner;
-
-import com.kameni.lanacchain.testrunner.display.Color;
-import com.kameni.lanacchain.testrunner.display.TestPrint;
+package com.kameni.lanacchain.testrunner.data;
 
 public record TestMethodResult(
         TestMethodData testMethodData,
