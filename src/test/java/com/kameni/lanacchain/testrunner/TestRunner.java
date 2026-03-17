@@ -95,39 +95,58 @@ public class TestRunner {
             IO.println("... ------");
 
             long timerStartTime = System.nanoTime();
+            Throwable testError = null;
+            boolean isPassed = false;
 
             try {
                 m.invoke(testInstance);
-                throw new TestPassedSignal();
-            } catch (Exception e) {
+                isPassed = true;
 
-                long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
-                Throwable cause = (e instanceof InvocationTargetException) ? e.getCause() : e;
-
-                int lineNumber = 1;
-                for (StackTraceElement element : cause.getStackTrace()) {
-                    if (element.getClassName().contains(testClassName) && element.getMethodName().equals(m.getName())) {
-                        lineNumber = element.getLineNumber();
-                        break;
-                    }
-                }
-
-                boolean isPassed = (cause instanceof TestPassedSignal);
-
-                IO.print("------ Finished ");
-                if (isPassed) {
-                    TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
-                    testResult.addResult(currentMethodName, fileName, lineNumber, testDuration, true, null);
+            } catch (InvocationTargetException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof TestPassedSignal) {
+                    isPassed = true;
                 } else {
-                    TestPrint.printColored(currentMethodName + " FAILED", Color.RED);
-                    cause.printStackTrace();
-                    testResult.addResult(currentMethodName, fileName, lineNumber, testDuration, false, cause);
+                    testError = cause;
                 }
-                IO.println(" ------");
+            } catch (Exception e) {
+                testError = e;
             }
+
+            long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
+            int lineNumber = findLineNumber(testError, testClassName, m.getName());
+
+            IO.print("------ Finished ");
+            if (isPassed) {
+                TestPrint.printColored(currentMethodName + " PASSED", Color.GREEN);
+                IO.println(" (" + testDuration + "ms) ------");
+
+            } else {
+                TestPrint.printColored(currentMethodName + " FAILED", Color.RED);
+                IO.print(" (" + testDuration + "ms) ------");
+                IO.println(" with stacktrace");
+
+                if (testError != null) {
+                    testError.printStackTrace(System.out);
+                }
+            }
+            IO.println("\n");
+
+            testResult.addResult(currentMethodName, fileName, lineNumber, testDuration, isPassed, testError);
         }
         return testResult;
     }
+
+    private int findLineNumber(Throwable t, String className, String methodName) {
+        if (t == null) return 1;
+        for (StackTraceElement element : t.getStackTrace()) {
+            if (element.getClassName().contains(className) && element.getMethodName().equals(methodName)) {
+                return element.getLineNumber();
+            }
+        }
+        return 1;
+    }
+
 
     private static String getTestMethodName(Method m) {
         String methodName;
