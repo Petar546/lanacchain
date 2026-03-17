@@ -3,7 +3,6 @@ package com.kameni.lanacchain.testrunner;
 import com.kameni.lanacchain.testrunner.annotations.Test;
 import com.kameni.lanacchain.testrunner.display.Color;
 import com.kameni.lanacchain.testrunner.display.TestPrint;
-import com.kameni.lanacchain.testrunner.exceptions.TestPassedSignal;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -79,12 +78,10 @@ public class TestRunner {
     }
 
     public TestResult runMethodsOfInstance(Object testInstance) {
-        String testClassName = testInstance.getClass().getSimpleName();
-        String fileName = testClassName + ".java";
-        Method[] methods = testInstance.getClass().getDeclaredMethods();
         TestResult testResult = new TestResult();
 
-        for (Method m : methods) {
+        String testClassName = testInstance.getClass().getSimpleName();
+        for (Method m : testInstance.getClass().getDeclaredMethods()) {
             //skip non test methods
             if (!m.isAnnotationPresent(Test.class)) continue;
 
@@ -103,18 +100,13 @@ public class TestRunner {
                 isPassed = true;
 
             } catch (InvocationTargetException e) {
-                Throwable cause = e.getCause();
-                if (cause instanceof TestPassedSignal) {
-                    isPassed = true;
-                } else {
-                    testError = cause;
-                }
+                testError = e.getCause();
             } catch (Exception e) {
                 testError = e;
             }
 
             long testDuration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timerStartTime);
-            int lineNumber = findLineNumber(testError, testClassName, m.getName());
+            int lineNumber = findLineNumber(testError, m);
 
             IO.print("------ Finished ");
             if (isPassed) {
@@ -132,15 +124,15 @@ public class TestRunner {
             }
             IO.println("\n");
 
-            testResult.addResult(currentMethodName, fileName, lineNumber, testDuration, isPassed, testError);
+            testResult.addResult(currentMethodName, testClassName + ".java", lineNumber, testDuration, isPassed, testError);
         }
         return testResult;
     }
 
-    private int findLineNumber(Throwable t, String className, String methodName) {
+    private int findLineNumber(Throwable t, Method m) {
         if (t == null) return 1;
         for (StackTraceElement element : t.getStackTrace()) {
-            if (element.getClassName().contains(className) && element.getMethodName().equals(methodName)) {
+            if (element.getClassName().contains(m.getClass().getSimpleName()) && element.getMethodName().equals(m.getName())) {
                 return element.getLineNumber();
             }
         }
@@ -150,6 +142,7 @@ public class TestRunner {
 
     private static String getTestMethodName(Method m) {
         String methodName;
+        m.getClass().getSimpleName();
         if (!Objects.equals(m.getAnnotation(Test.class).name(), "")){
             methodName = m.getAnnotation(Test.class).name();
         }else{
