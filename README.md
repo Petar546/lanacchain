@@ -20,4 +20,4 @@ dependency specified in ``` pom.xml ``` in dependencies:
     <version>1.0.0</version>
     <scope>test</scope>
 </dependency>
-```1
+```
